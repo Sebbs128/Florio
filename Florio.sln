@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.Parser", "src\Florio.Gutenberg.Parser\Florio.Gutenberg.Parser.csproj", "{E62A273B-4321-4361-8402-E66F2D71369F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.Parser.Tests", "test\Florio.Gutenberg.Parser.Tests\Florio.Gutenberg.Parser.Tests.csproj", "{AA1D5AC5-6006-4599-897D-3BF73E436435}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.ConsoleTest", "src\Florio.Gutenberg.ConsoleTest\Florio.Gutenberg.ConsoleTest.csproj", "{D84F62A3-9B4A-4D2F-898A-82557707ED09}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.BenchmarkTrials", "src\Florio.Gutenberg.BenchmarkTrials\Florio.Gutenberg.BenchmarkTrials.csproj", "{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utility apps", "utility apps", "{18DFC3F3-FF58-46A2-A9A5-1DAA7E1CC500}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "exporters", "exporters", "{3EB1649C-5A92-41AD-A5B3-361134CF09D2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.Exporter.Excel", "src\Florio.Gutenberg.Exporter.Excel\Florio.Gutenberg.Exporter.Excel.csproj", "{FF44F518-8666-4A95-8376-94D003A84C68}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{514D6FB0-56CF-448A-BF4A-444752EBAD88}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{303993C7-E22F-4DBC-8EDC-A96B7CD28436}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E62A273B-4321-4361-8402-E66F2D71369F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E62A273B-4321-4361-8402-E66F2D71369F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E62A273B-4321-4361-8402-E66F2D71369F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E62A273B-4321-4361-8402-E66F2D71369F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA1D5AC5-6006-4599-897D-3BF73E436435}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA1D5AC5-6006-4599-897D-3BF73E436435}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA1D5AC5-6006-4599-897D-3BF73E436435}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA1D5AC5-6006-4599-897D-3BF73E436435}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D84F62A3-9B4A-4D2F-898A-82557707ED09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D84F62A3-9B4A-4D2F-898A-82557707ED09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D84F62A3-9B4A-4D2F-898A-82557707ED09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D84F62A3-9B4A-4D2F-898A-82557707ED09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF44F518-8666-4A95-8376-94D003A84C68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF44F518-8666-4A95-8376-94D003A84C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF44F518-8666-4A95-8376-94D003A84C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF44F518-8666-4A95-8376-94D003A84C68}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E62A273B-4321-4361-8402-E66F2D71369F} = {514D6FB0-56CF-448A-BF4A-444752EBAD88}
+		{AA1D5AC5-6006-4599-897D-3BF73E436435} = {303993C7-E22F-4DBC-8EDC-A96B7CD28436}
+		{D84F62A3-9B4A-4D2F-898A-82557707ED09} = {18DFC3F3-FF58-46A2-A9A5-1DAA7E1CC500}
+		{F861A305-3FF5-4E3D-BC6F-8F91306DF4E1} = {18DFC3F3-FF58-46A2-A9A5-1DAA7E1CC500}
+		{18DFC3F3-FF58-46A2-A9A5-1DAA7E1CC500} = {514D6FB0-56CF-448A-BF4A-444752EBAD88}
+		{3EB1649C-5A92-41AD-A5B3-361134CF09D2} = {514D6FB0-56CF-448A-BF4A-444752EBAD88}
+		{FF44F518-8666-4A95-8376-94D003A84C68} = {3EB1649C-5A92-41AD-A5B3-361134CF09D2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {18A79437-1DF3-4192-9D0A-00DE9CD65D93}
+	EndGlobalSection
+EndGlobal
