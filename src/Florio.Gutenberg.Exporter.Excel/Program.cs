@@ -22,9 +22,11 @@ using var excelFile = new XLWorkbook();
 
 var titleWorksheet = excelFile.AddWorksheet("Title");
 
-titleWorksheet.Cell("A1")
-    .CreateRichText()
+var firstCell = titleWorksheet.Cell("A1");
+firstCell.CreateRichText()
     .AddText(Constants.Gutenberg_Attribution);
+firstCell.Style.Alignment.WrapText = true;
+firstCell.WorksheetColumn().AdjustToContents();
 
 titleWorksheet.Cell("A3")
     .CreateRichText()
@@ -50,6 +52,14 @@ foreach (var letterGroup in byFirstLetter.OrderBy(l => l.Key))
 
     var worksheet = excelFile.AddWorksheet(char.ToUpperInvariant(letterGroup.Key).ToString());
     worksheet.Cell("A1").InsertData(dataTable);
+
+    worksheet.Column(1).AdjustToContents();
+
+    worksheet.Column(2).Style.Alignment.WrapText = true;
+    worksheet.Column(2).AdjustToContents();
+
+    worksheet.Column(3).Style.Alignment.WrapText = true;
+    worksheet.Column(3).AdjustToContents();
 }
 
 excelFile.SaveAs("Florio Italian-English.xlsx");

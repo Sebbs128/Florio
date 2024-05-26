@@ -15,12 +15,15 @@ var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
 var wordDefinitions = await parser.ParseLines().ToListAsync();
 
 Console.WriteLine($"{wordDefinitions.Count} words were parsed.");
+Console.WriteLine();
 
 var longestWord = wordDefinitions.MaxBy(wd => wd.Word.Length);
 var longestDefinition = wordDefinitions.MaxBy(wd => wd.Definition.Length);
 
 Console.WriteLine($"Longest word ({longestWord.Word.Length} chars): {longestWord.Word}");
+Console.WriteLine();
 Console.WriteLine($"Longest definition ({longestDefinition.Definition.Length} chars): {longestDefinition.Definition}");
+Console.WriteLine();
 
 var containingBrackets = wordDefinitions
     .Select(wd => StringUtilities.Normalize(wd.Word))

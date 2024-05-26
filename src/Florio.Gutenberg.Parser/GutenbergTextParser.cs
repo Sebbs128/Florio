@@ -12,16 +12,16 @@ namespace Florio.Gutenberg.Parser
         {
             var lineBuilder = new StringBuilder();
 
-            var reachedEntries = false;
-            var handlingDefinition = false;
-            var previousDefinition = default(WordDefinition);
-            var buffer = new Queue<string>();
+            var state = new ParserState();
+            var lineEnumerator = _downloader.ReadLines(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
             // TODO:
             // - ? handle "&c". "&c" is an old form of "etc"
             // - may need a buffer of lines for cases where the definition contains multiple examples containing '}' character
-            await foreach (var line in _downloader.ReadLines(cancellationToken))
+            while (await lineEnumerator.MoveNextAsync())
             {
+                var line = lineEnumerator.Current;
+
                 // handle end indicator
                 // end indicator is "                                 FINIS."
                 if (IsEndOfDefinitions(line))
@@ -30,73 +30,144 @@ namespace Florio.Gutenberg.Parser
                 }
 
                 // skip lines until we reach actual definitions ie. being after a heading such as "A"
-                if (!reachedEntries)
+                if (!state.HaveReachedEntries)
                 {
                     if (IsPageHeading(line))
                     {
-                        reachedEntries = true;
+                        state.ReachedEntries();
                     }
                     continue;
                 }
 
                 //  ignore page headers ("A", "ABB" etc. anything not containing ", _")
                 // they indicate that we've reach the section containing definitions though
-                if (!handlingDefinition && ContainsDefinition(line))
+                if (!state.CurrentlyHandlingDefinition && ContainsDefinition(line))
                 {
-                    handlingDefinition = true;
+                    state.HandlingDefinition();
                 }
 
-                if (!handlingDefinition)
+                if (!state.CurrentlyHandlingDefinition)
                 {
                     continue;
                 }
 
                 // blank line is an indication the definition has concluded
-                if (!string.IsNullOrWhiteSpace(line))
+                // because of an edge case containing several examples (lines containing a '}')
+                //  we need to read the line after a blank line to determine if the
+                //  currently built line should be returned or not
+                if (string.IsNullOrWhiteSpace(line))
                 {
-                    lineBuilder.Append(line.Trim())
-                        .Append(' ');
-
-                    continue;
-                }
-
-                var fullLine = lineBuilder.ToString().Trim();
-
-                var definitionLine = GetDefinitionLine(fullLine);
-
-                // skip false cases, where the Word is empty
-                if (!string.IsNullOrEmpty(definitionLine.Word))
-                {
-                    definitionLine = CheckAndHandleIdem(previousDefinition, definitionLine);
-
-                    previousDefinition = definitionLine;
-
-                    // handle entries that list multiple suffixes or variations of a word
-                    // - "Ápe, _a bee._ Ápi, _bees._" // TODO?
-                    // - "Apẻndi[o], Apẻnd[o], _downe-hanging._"
-                    // - "Affluíre, ísc[o], ít[o], _to flow vnto. Also to abound in wealth._"
-                    foreach (var variant in GetVariations(definitionLine.Word))
+                    if (await lineEnumerator.MoveNextAsync())
                     {
-                        yield return definitionLine with
+                        line = lineEnumerator.Current;
+
+                        if (!line.Contains('}'))
                         {
-                            Word = variant
-                        };
+                            foreach (var definitionLine in ParseBuiltLine(lineBuilder, state))
+                            {
+                                yield return definitionLine;
+                            }
+
+                            if (!ContainsDefinition(line))
+                            {
+                                state.FinishedHandlingDefintion();
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            // add a blank line if the current line is part of an expanded definition
+                            // (first is merely ending the previous line; second is the blank line)
+                            lineBuilder.AppendLine()
+                                .AppendLine();
+                        }
                     }
                 }
-                else
-                {
-                    // hit a case where no word is identified
-                    // there are some expected instances of this
-                    Debugger.Break();
-                }
 
-                lineBuilder.Clear();
-                handlingDefinition = false;
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (line.Contains('}'))
+                    {
+                        lineBuilder.AppendLine(line);
+                    }
+                    else
+                    {
+                        lineBuilder.Append(' ')
+                            .Append(line.Trim());
+                    }
+                }
             }
 
+            // handle anything that was left after reaching the end.
             if (lineBuilder.Length > 0)
             {
-                yield return GetDefinitionLine(lineBuilder.ToString());
+                foreach (var definitionLine in ParseBuiltLine(lineBuilder, state))
+                {
+                    yield return definitionLine;
+                }
+            }
+        }
+
+        internal static IEnumerable<WordDefinition> ParseBuiltLine(StringBuilder lineBuilder, ParserState state)
+        {
+            var fullLine = lineBuilder.ToString().Trim();
+            lineBuilder.Clear();
+
+            var definitionLine = GetDefinitionLine(fullLine);
+
+            // skip false cases, where the Word is empty
+            if (!string.IsNullOrEmpty(definitionLine.Word))
+            {
+                definitionLine = CheckAndHandleIdem(state.PreviousDefinition, definitionLine);
+
+                state.UpdatePreviousDefinition(definitionLine);
+
+                foreach (var variant in GetVariations(definitionLine.Word))
+                {
+                    yield return definitionLine with
+                    {
+                        Word = variant
+                    };
+                }
+            }
+            else
+            {
+                // hit a case where no word is identified
+                // there are some expected instances of this
+                Debugger.Break();
+            }
+        }
+
+        internal class ParserState
+        {
+            public bool HaveReachedEntries { get; private set; } = false;
+            public bool CurrentlyHandlingDefinition { get; private set; } = false;
+
+            public WordDefinition PreviousDefinition { get; private set; } = default;
+
+            public void ReachedEntries()
+            {
+                HaveReachedEntries = true;
+            }
+
+            public void HandlingDefinition()
+            {
+                CurrentlyHandlingDefinition = true;
+            }
+
+            public void FinishedHandlingDefintion()
+            {
+                CurrentlyHandlingDefinition = false;
+            }
+
+            public void UpdatePreviousDefinition(WordDefinition newPreviousDefinition)
+            {
+                PreviousDefinition = new()
+                {
+                    Word = newPreviousDefinition.Word,
+                    Definition = newPreviousDefinition.Definition,
+                    ReferencedWords = newPreviousDefinition.ReferencedWords,
+                };
             }
         }
 
@@ -113,8 +184,9 @@ namespace Florio.Gutenberg.Parser
         // - R[o]mpicóll[o],_ a breake-necke place, a downefal, a headlong
         //   precipice,_ A r[o] mpicóll[o], _headlong, rashly, desperately, in danger
         //   of breaking ones necke.Also a desperate, rash or heedlesse fellow._
+        // - Vliuígn[o], of forme or colour of an oliue.
         internal static bool ContainsDefinition(string line) =>
-            line.Contains(" _") || line.Contains(",_");
+            line.Contains(" _") || line.Contains(",_") || line.StartsWith("Vliuígn[o]", StringComparison.OrdinalIgnoreCase);
 
         // False cases:
         // - _Note that wheresoeuer_ AV, _commeth before any vowell, the_ V _may 
@@ -123,27 +195,38 @@ namespace Florio.Gutenberg.Parser
         //   Auual[o] ráre, Auuampáre, Auueníre, Auu[o]l[o] ntáre, Auuinacciáre, &c.
         // - _As for the words that are ioyned vnto_ Chè, _which are very many I
         //   refer the reader to my rules at the word_ Chè.
-        // TODO: weird case: [er] is not covered in transcription notes.
-        //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
-        // - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
         internal static WordDefinition GetDefinitionLine(string line)
         {
-            int index = line.IndexOf("_");
+            char startOfDefinition = '_';
+            // special-case the Vliuígn[o] edge-case
+            if (line.StartsWith("Vliuígn[o]", StringComparison.OrdinalIgnoreCase) && !line.Contains('_'))
+            {
+                startOfDefinition = ',';
+            }
+
+            int index = line.IndexOf(startOfDefinition);
             var wordDefintion = new WordDefinition(
-                CleanHtmlItalics(line[..index].Trim(',', ' ')),
-                line[index..].Trim());
+                Word: CleanInconsistencies(line[..index].Trim(',', ' ')),
+                Definition: line[index..].Trim(',', ' '));
+
             return wordDefintion with
             {
                 ReferencedWords = GetReferencedWords(wordDefintion.Definition).ToArray()
             };
 
             // some lines haven't had the HTML italics converted to the []
-            // transcribers used <i>ò</i> to denote the long o pronunciation in the html file, but [ò] for the same in the markdown
-            static string CleanHtmlItalics(string word) =>
-                word.Replace("<i>", "[").Replace("</i>", "]");
+            //   transcribers used <i>ò</i> to denote the long o pronunciation in the html file, but [ò] for the same in the markdown
+            // weird case: [er] is not covered in transcription notes.
+            //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
+            //   - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
+            static string CleanInconsistencies(string word) => word
+                .Replace("<i>", "[").Replace("</i>", "]")
+                .Replace("[er]", "er");
         }
 
-        // TODO: consider adding the word matching to the previous definition as a referenced word
+        // TODO: consider adding the word matching to the previous definition as a referenced word?
+        //       - might be very difficult/impossible as WordDefinition is immutable, and
+        //         ReferencedWords is an array
         internal static WordDefinition CheckAndHandleIdem(WordDefinition previousDefinition, WordDefinition definitionLine)
         {
             // handle "idem.", meaning "as above"

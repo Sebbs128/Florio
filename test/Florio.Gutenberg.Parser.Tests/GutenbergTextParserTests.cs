@@ -278,9 +278,23 @@
 
                 Fémmina, &c. _as_ Fémina.
 
+                Máglia degl'ócchij, _a pin and web or other spots in the eies._
+
+                  Máglia lárga.    }
+                                   }
+                  Máglia l[ó]nga.  }
+                                   } Certain net-worke
+                  Máglia quádra.   } so called of Semsters.
+                                   }
+                  Máglia strétta.  }
+                                   }
+                  Máglia t[ó]nda.  }
+
                 Prẻzzáre,_ as_ Prẻgiáre, _to bargane or make price for any thing._
 
                 Pr<i>ò</i> Pr<i>ò</i>, _much much good may it doe you, well may you fare._
+
+                Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
 
                 R[o]mpicóll[o],_ a breake-necke place, a downefal, a headlong
                 precipice,_ A r[o] mpicóll[o], _headlong, rashly, desperately, in danger
@@ -291,6 +305,8 @@
 
                 Torpẻnte, quási pígro, & oti[ó]s[o], _dull, heauy, benummed, clumsie,
                 sluggish._
+
+                Vliuígn[o], of forme or colour of an oliue.
 
                 Xisti[ó]ne, _a kind of precious stone._
 
@@ -324,11 +340,27 @@
                     new("Dissegnáre, &c.", "_as_ Disegnáre."),
                     new("Distrigáre, &c.", "_as_ Districáre."),
                     new("Fémmina, &c.", "_as_ Fémina."),
+                    new("Máglia degl'ócchij",
+                        """
+                        _a pin and web or other spots in the eies._
+                        
+                          Máglia lárga.    }
+                                           }
+                          Máglia l[ó]nga.  }
+                                           } Certain net-worke
+                          Máglia quádra.   } so called of Semsters.
+                                           }
+                          Máglia strétta.  }
+                                           }
+                          Máglia t[ó]nda.  }
+                        """),
                     new("Prẻzzáre", "_ as_ Prẻgiáre, _to bargane or make price for any thing._") { ReferencedWords = [ "Prẻgiáre" ]},
                     new("Pr[ò] Pr[ò]", "_much much good may it doe you, well may you fare._"),
+                    new("Rinterrzáta cárta", "_a bun-carde. Also a carde prickt or packt for aduantage._"),
                     new("R[o]mpicóll[o]", "_ a breake-necke place, a downefal, a headlong precipice,_ A r[o] mpicóll[o], _headlong, rashly, desperately, in danger of breaking ones necke.Also a desperate, rash or heedlesse fellow._"),
                     new("Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni", "_a kind of proud fabrike._"),
                     new("Torpẻnte, quási pígro, & oti[ó]s[o]", "_dull, heauy, benummed, clumsie, sluggish._"),
+                    new("Vliuígn[o]", "of forme or colour of an oliue."),
                     new("Xisti[ó]ne", "_a kind of precious stone._"),
                     new("Xist[ó]ne", "_a place of exercise in faire weather, a wrestling-place._")
                 }
