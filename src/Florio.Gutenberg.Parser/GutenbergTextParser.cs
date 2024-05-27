@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Florio.Gutenberg.Parser
@@ -134,7 +133,7 @@ namespace Florio.Gutenberg.Parser
             {
                 // hit a case where no word is identified
                 // there are some expected instances of this
-                Debugger.Break();
+                //Debugger.Break();
             }
         }
 
