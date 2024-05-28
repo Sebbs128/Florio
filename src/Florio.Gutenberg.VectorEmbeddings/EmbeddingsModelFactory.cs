@@ -22,8 +22,7 @@ namespace Florio.Gutenberg.VectorModel
                 .Select(s => new InputStringData { Text = s }));
 
             var embeddingPipeline =
-                _mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("CharTokens", "Text", useMarkerCharacters: false)
-                    .Append(_mlContext.Transforms.Conversion.MapValueToKey("CharTokens"))
+                _mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("CharTokens", "Text", useMarkerCharacters: true)
                     .Append(_mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
                         ngramLength: 3,
                         useAllLengths: false,
@@ -36,9 +35,11 @@ namespace Florio.Gutenberg.VectorModel
 
         public EmbeddingsModel CreateFromOnnxFile(string path)
         {
-            var estimator = _mlContext.Transforms.ApplyOnnxModel(path);
-            var emptyDataView = _mlContext.Data.LoadFromEnumerable(new InputStringData[] { });
-            var transformer = estimator.Fit(emptyDataView);
+            var emptyDataView = _mlContext.Data.LoadFromEnumerable(new List<InputStringData>());
+
+            var embeddingPipeline = _mlContext.Transforms.ApplyOnnxModel(modelFile: path);
+
+            var transformer = embeddingPipeline.Fit(emptyDataView);
 
             return new EmbeddingsModel(_mlContext, transformer, emptyDataView);
         }
