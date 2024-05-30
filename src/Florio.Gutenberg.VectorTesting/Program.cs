@@ -32,6 +32,7 @@ if (File.Exists(onnxFilePath))
     catch (Exception)
     {
         Console.WriteLine("Encountered an error when attempting to load existing .onnx file.");
+        File.Delete(onnxFilePath);
     }
 }
 

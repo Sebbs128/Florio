@@ -23,10 +23,10 @@ namespace Florio.Gutenberg.VectorModel
 
             var embeddingPipeline =
                 _mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("CharTokens", "Text", useMarkerCharacters: true)
-                    .Append(_mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
-                        ngramLength: 3,
-                        useAllLengths: false,
-                        weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
+                .Append(_mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
+                    ngramLength: 3,
+                    useAllLengths: false,
+                    weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
 
             var transformer = embeddingPipeline.Fit(dataView);
 

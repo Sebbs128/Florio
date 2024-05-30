@@ -29,7 +29,7 @@ namespace Florio.Gutenberg.VectorModel
         public void ExportToOnnx(string path)
         {
             using var fileStream = File.Create(path);
-            _mlContext.Model.ConvertToOnnx(_transformer, _dataView, fileStream, nameof(OutputVectorData.OriginalText), nameof(OutputVectorData.Features));
+            _mlContext.Model.ConvertToOnnx(_transformer, _dataView, fileStream, nameof(OutputVectorData.Features));
         }
     }
 }
