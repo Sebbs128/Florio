@@ -14,8 +14,7 @@ namespace Florio.Gutenberg.Parser
         public static string GetPrintableString(string input)
         {
             return input
-                .Replace(Constants.Close_O_Upper, "O")
-                .Replace(Constants.Close_O_Lower, "o");
+                .Replace("[", "").Replace("]", "");
         }
 
         /// <summary>

@@ -22,36 +22,52 @@ using var excelFile = new XLWorkbook();
 
 var titleWorksheet = excelFile.AddWorksheet("Title");
 
-var firstCell = titleWorksheet.Cell("A1");
-firstCell.CreateRichText()
+var gutenbergLicenseCell = titleWorksheet.Cell("A1");
+gutenbergLicenseCell.CreateRichText()
     .AddText(Constants.Gutenberg_Attribution);
-firstCell.Style.Alignment.WrapText = true;
-firstCell.WorksheetColumn().AdjustToContents();
+gutenbergLicenseCell.Style.Alignment.WrapText = true;
 
-titleWorksheet.Cell("A3")
-    .CreateRichText()
-    .AddText("Florio's 1611 Italian/English Dictionary: Queen Anna's New World of Words")
-    .SetBold(true);
+var titleCell = titleWorksheet.Cell("A3");
+titleCell.Style.Font.FontSize = 20;
+titleCell.Style.Font.Bold = true;
+titleCell.CreateRichText()
+    .AddText("Florio's 1611 Italian/English Dictionary:")
+    .AddNewLine()
+    .AddText("Queen Anna's New World of Words");
+titleCell.Style.Alignment.WrapText = true;
+titleCell.WorksheetColumn().AdjustToContents();
+
+var notesCell = titleWorksheet.Cell("A6");
+notesCell.CreateRichText()
+    .AddText(Constants.Gutenberg_Transcribers_Note);
+notesCell.Style.Alignment.WrapText = true;
 
 foreach (var letterGroup in byFirstLetter.OrderBy(l => l.Key))
 {
-    var dataTable = new DataTable();
-    dataTable.Columns.Add(nameof(WordDefinition.Word));
-    dataTable.Columns.Add(nameof(WordDefinition.Definition));
-    dataTable.Columns.Add(nameof(WordDefinition.ReferencedWords));
+    var worksheet = excelFile.AddWorksheet(char.ToUpperInvariant(letterGroup.Key).ToString());
 
-    dataTable.Rows.Add("Word", "Definition", "Phrases or Referenced Words");
+    var row = worksheet.Row(1);
+    row.Cell(1).CreateRichText().AddText("Word").SetBold();
+    row.Cell(2).CreateRichText().AddText("Definition").SetBold();
+    row.Cell(3).CreateRichText().AddText("Phrases or Referenced Words").SetBold();
 
     foreach (var wordDefinition in letterGroup)
     {
-        dataTable.Rows.Add(
-            StringUtilities.GetPrintableString(wordDefinition.Word),
-            wordDefinition.Definition,
-            string.Join('\n', wordDefinition.ReferencedWords ?? Enumerable.Empty<string>()));
+        row = row.RowBelow();
+        row.Cell(1).CreateRichText().AddText(wordDefinition.Word);
+
+        var definitionCellRichText = row.Cell(2).CreateRichText();
+        var parts = wordDefinition.Definition.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length; i++)
+        {
+            definitionCellRichText.AddText(parts[i]).SetItalic(i % 2 == 0);
+        }
+
+        row.Cell(3).CreateRichText()
+            .AddText(string.Join('\n', wordDefinition.ReferencedWords ?? Enumerable.Empty<string>()));
     }
 
-    var worksheet = excelFile.AddWorksheet(char.ToUpperInvariant(letterGroup.Key).ToString());
-    worksheet.Cell("A1").InsertData(dataTable);
+    //worksheet.Cell("A1").InsertData(dataTable);
 
     worksheet.Column(1).AdjustToContents();
 

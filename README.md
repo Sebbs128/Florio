@@ -11,6 +11,7 @@ Right now it is a work in progress. Current functionality includes:
   - (there are still some edge cases to work out in the parsing)
 - analysing the parsed text to identify the longest word, longest definition, and set of characters in "normalised" words
 - exporting to a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
+- exporting an ONNX (.onnx) file containing a vector embeddings model fitted from the normalised words as trigrams, and testing looking up words from an in-memory vector database.
 
 ## Credits and Sources
 
@@ -34,6 +35,8 @@ Project Gutenberg's transcriptions are available at
 - [Text: https://www.gutenberg.org/files/56200/56200-0.txt](https://www.gutenberg.org/files/56200/56200-0.txt)
 
 The Project Gutenberg license is available at [https://www.gutenberg.org/license](https://www.gutenberg.org/license)
+
+Project Gutenberg credits production of their transcriptions to Greg Lindahl, Steve Bush, Barbara Magni and the Online Distributed Proofreading Team at (http://www.pgdp.net).
 
 Portions of the Project Gutenberg transcription are reproduced in this git repository for the purposes of documenting and testing functionality.
 

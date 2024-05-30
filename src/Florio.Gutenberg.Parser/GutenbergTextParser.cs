@@ -14,9 +14,6 @@ namespace Florio.Gutenberg.Parser
             var state = new ParserState();
             var lineEnumerator = _downloader.ReadLines(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
-            // TODO:
-            // - ? handle "&c". "&c" is an old form of "etc"
-            // - may need a buffer of lines for cases where the definition contains multiple examples containing '}' character
             while (await lineEnumerator.MoveNextAsync())
             {
                 var line = lineEnumerator.Current;
@@ -241,7 +238,9 @@ namespace Florio.Gutenberg.Parser
                         .Replace("_idem", previousDefinition.Definition)
                         .Replace("__", "_")
                         .Replace("._._", "._"),
-                    ReferencedWords = [previousDefinition.Word]
+                    ReferencedWords = previousDefinition.ReferencedWords is null
+                        ? [previousDefinition.Word]
+                        : Enumerable.Union(previousDefinition.ReferencedWords, [previousDefinition.Word]).ToArray()
                 };
             }
 

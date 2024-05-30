@@ -21,5 +21,14 @@
             eBook or online at www.gutenberg.org. If you are not located in the United States, you will have to check the laws of the country where 
             you are located before using this eBook.
             """;
+
+        public const string Gutenberg_Transcribers_Note = """
+            Transcriber's Note
+
+            Throughout the Dictionary two different forms of the letters E and O are used, to represent the different
+            sounds they can have in Italian. The close E is displayed in its normal form (E — e), the open E with a special
+            character the author had made for this very purpose: it has here been rendered with Ẻ — ẻ. The close O has an oval
+            shape, and has been represented in this text version with [O] [o], while the open O has its normal appearance.
+            """;
     }
 }
