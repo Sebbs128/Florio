@@ -29,12 +29,9 @@ Original scans are credited to Steve Bush, and the 1968 Scholar Press facsimile.
 
 ### Project Gutenberg
 
-Project Gutenberg's transcriptions are available at
+Project Gutenberg's transcriptions are available at (https://www.gutenberg.org/ebooks/56200).
 
-- [HTML: https://www.gutenberg.org/cache/epub/56200/pg56200-images.html](https://www.gutenberg.org/cache/epub/56200/pg56200-images.html)
-- [Text: https://www.gutenberg.org/files/56200/56200-0.txt](https://www.gutenberg.org/files/56200/56200-0.txt)
-
-The Project Gutenberg license is available at [https://www.gutenberg.org/license](https://www.gutenberg.org/license)
+The Project Gutenberg license is available at [https://www.gutenberg.org/license](https://www.gutenberg.org/license).
 
 Project Gutenberg credits production of their transcriptions to Greg Lindahl, Steve Bush, Barbara Magni and the Online Distributed Proofreading Team at (http://www.pgdp.net).
 

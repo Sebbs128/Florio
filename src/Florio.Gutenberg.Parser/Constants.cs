@@ -13,7 +13,7 @@
         public const string Open_E_Lower = "ẻ";
 
 
-        public const string Gutenberg_Text_Url = "https://www.gutenberg.org/files/56200/56200-0.txt";
+        public const string Gutenberg_Text_Url = "https://www.gutenberg.org/cache/epub/56200/pg56200.txt";
 
         public const string Gutenberg_Attribution = """
             This eBook is for the use of anyone anywhere in the United States and most other parts of the world at no cost and with almost no 
