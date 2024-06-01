@@ -16,7 +16,7 @@ var serviceProvider = services.BuildServiceProvider();
 var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
 
 var byFirstLetter = await parser.ParseLines()
-    .ToLookupAsync(wd => StringUtilities.Normalize(wd.Word).First());
+    .ToLookupAsync(wd => StringUtilities.GetPrintableNormalizedString(wd.Word).First());
 
 using var excelFile = new XLWorkbook();
 

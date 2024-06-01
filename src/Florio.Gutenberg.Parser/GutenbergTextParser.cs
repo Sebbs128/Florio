@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Florio.Gutenberg.Parser
@@ -118,6 +119,9 @@ namespace Florio.Gutenberg.Parser
 
                 state.UpdatePreviousDefinition(definitionLine);
 
+                //// TODO: fix variation edge cases
+                //yield return definitionLine;
+                //yield break;
                 foreach (var variant in GetVariations(definitionLine.Word))
                 {
                     yield return definitionLine with
@@ -181,8 +185,15 @@ namespace Florio.Gutenberg.Parser
         //   precipice,_ A r[o] mpicóll[o], _headlong, rashly, desperately, in danger
         //   of breaking ones necke.Also a desperate, rash or heedlesse fellow._
         // - Vliuígn[o], of forme or colour of an oliue.
+        // - Fáre a guísa délla c[ó]da del pórc[o] che tútt[o] il gi[ó]rn[o] se la
+        //   diména, e pói la séra n[o] n hà fátt[o] núlla, _to doe as the hog doth
+        //   that all day wags his taile and at night hath done nothing, much adoe
+        //   and neuer the neerer, doe and vndoe the day is long enough._
         internal static bool ContainsDefinition(string line) =>
-            line.Contains(" _") || line.Contains(",_") || line.StartsWith("Vliuígn[o]", StringComparison.OrdinalIgnoreCase);
+            line.Contains(" _") || line.Contains(",_") ||
+            // special edge cases
+            line.StartsWith("Fáre a guísa délla", StringComparison.OrdinalIgnoreCase) ||
+            line.StartsWith("Vliuígn[o]", StringComparison.OrdinalIgnoreCase); // this has been fixed in PG as of 2024-05-30
 
         // False cases:
         // - _Note that wheresoeuer_ AV, _commeth before any vowell, the_ V _may 
@@ -215,6 +226,7 @@ namespace Florio.Gutenberg.Parser
             // weird case: [er] is not covered in transcription notes.
             //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
             //   - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
+            // these has been fixed in PG as of 2024-05-30
             static string CleanInconsistencies(string word) => word
                 .Replace("<i>", "[").Replace("</i>", "]")
                 .Replace("[er]", "er");
@@ -259,7 +271,7 @@ namespace Florio.Gutenberg.Parser
             //return definition
             //    .Split('_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             //    .Where((_, idx) => idx % 2 == 1)
-            //    .Select(s => s.Replace("&c", "").Trim([' ', ',', '.']));
+            //    .Select(s => s.Replace("&c", "").Trim([' ', ',', ':', '.']));
 
             var parts = definition.Split(
                 '_',
@@ -269,7 +281,7 @@ namespace Florio.Gutenberg.Parser
             {
                 yield return parts[i]
                     .Replace("&c", "")
-                    .Trim([' ', ',', '.']);
+                    .Trim([' ', ',', ':', '.']);
             }
         }
 
@@ -292,10 +304,19 @@ namespace Florio.Gutenberg.Parser
             }
 
             var tokens = wordWithVariations.Split(
-                [",", "_or_"],
+                [",", "_or_", " or "],
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            // causes " or " to not be handled
+            // eg. "Auedére, véd[o] or végg[o], víddi, vedút[o] or víst[o], _to perceiue or be aware, to aduise, or foresee._"
+            // could possibly move " or " to the Split() above
+            if (tokens.Any(t => t.Contains(' ') || t.Contains('.')))
+            {
+                return [wordWithVariations];
+            }
+
             string originalWord = tokens[0];
-            var variations = new List<string>()
+            var variations = new List<string>
             {
                 originalWord
             };
@@ -304,19 +325,46 @@ namespace Florio.Gutenberg.Parser
 
             foreach (var variant in tokens[1..])
             {
+                // notes for improving
+                // current loop trims off end until it finds a match.
+                //   could maybe enclose it in a loop that trims the start to help with preserving original (uppercase) characters?
+                //   second, third etc iterations of outer loop would only occur if index was <= 0
+                // check if variant[0] == originalWord[originalWordOffset] before using?
+                // support interchangable letters... eg 'u' and 'v'
+                //   "Accẻruíre, vísc[o], vít[o]" would be {Accẻruíre, Accẻruísc[o], Accẻruít[o]}
+                //   this might be something adding an outloop solves?
+                //   IndexOfAny() doesn't support strings, so using it for this case would require either a different path or a rewrite of the loop
+                //     eg. find first letter (and valid replacements eg 'u'<==>'v'), then check remainder of variant
+                // what should "Andáre, vád[o], andái, andát[o]" be?
+                // what should "Dẻ[o], as Dí[o], _GOD._" be? looks like it should have been transcibed as "Dẻ[o], _as_ Dí[o], _GOD._" (https://www.pbm.com/~lindahl/florio/156.html)
+
+                // if variant starts with uppercase, immediately add it? the index-matching loop would be unnecessary
+                //   eg. "Accẻndere, accẻnd[o], accési, accés[o]" should be {Accẻndere, Accẻnd[o], Accési, Accés[o]}
+                if (char.IsUpper(variant[0]))
+                {
+                    variations.Add(variant);
+                    continue;
+                }
+
                 bool foundSuffixLocation = false;
 
-                if (originalWordOffset != -1)
+                if (originalWordOffset > 0)
                 {
                     variations.Add($"{originalWord[..originalWordOffset]}{variant}");
                     continue;
                 }
 
+                // moves through the variant from the end
                 for (int i = variant.Length; ; i--)
                 {
-                    int index = originalWord.IndexOf(variant[..i]);
+                    int index = originalWord.IndexOf(variant[1..i]);
+                    if (index == 0)
+                    {
+                        Debugger.Break();
+                    }
                     if (index > -1)
                     {
+                        // in most cases the variations are from the same location in the original word
                         originalWordOffset = index;
                         foundSuffixLocation = true;
                         variations.Add($"{originalWord[..originalWordOffset]}{variant}");

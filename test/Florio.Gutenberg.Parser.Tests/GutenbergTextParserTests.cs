@@ -21,7 +21,8 @@
         [MemberData(nameof(WordVariations))]
         public void CanExtractWordVariations(string wordWithVariations, IEnumerable<string> variations)
         {
-            Assert.Equal(variations, GutenbergTextParser.GetVariations(wordWithVariations));
+            IEnumerable<string> actual = GutenbergTextParser.GetVariations(wordWithVariations);
+            Assert.Equal(variations, actual);
         }
 
         [Theory]
@@ -67,7 +68,7 @@
             },
             {
                 "Apẻndi[o], Apẻnd[o]",
-                new List<string>()
+                new List<string>
                 {
                     "Apẻndi[o]",
                     "Apẻnd[o]"
@@ -75,7 +76,7 @@
             },
             {
                 "Affielíre, lísc[o], lít[o]",
-                new List<string>()
+                new List<string>
                 {
                     "Affielíre",
                     "Affielísc[o]",
@@ -84,7 +85,7 @@
             },
             {
                 "Affieníre, nísc[o], nít[o]",
-                new List<string>()
+                new List<string>
                 {
                     "Affieníre",
                     "Affienísc[o]",
@@ -93,7 +94,7 @@
             },
             {
                 "Affieu[o]líre, lísc[o], lít[o]",
-                new List<string>()
+                new List<string>
                 {
                     "Affieu[o]líre",
                     "Affieu[o]lísc[o]",
@@ -102,7 +103,7 @@
             },
             {
                 "Affíggere, fígg[o], físsi, físs[o] _or_ fítt[o]",
-                new List<string>()
+                new List<string>
                 {
                     "Affíggere",
                     "Affígg[o]",
@@ -111,41 +112,79 @@
                     "Affítt[o]",
                 }
             },
+            {
+                "Audíre, ód[o], udíj, udít[o]",
+                new List<string>
                 {
-                    "Dissegnáre, &c.",
-                    new List<string>()
-                    {
-                        "Dissegnáre, &c."
-                    }
-                },
-                {
-                    "Distrigáre, &c.",
-                    new List<string>()
-                    {
-                        "Distrigáre, &c."
-                    }
-                },
-                {
-                    "Fémmina, &c.",
-                    new List<string>()
-                    {
-                        "Fémmina, &c."
-                    }
-                },
-                {
-                    "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni",
-                    new List<string>()
-                    {
-                        "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni"
-                    }
-                },
-                {
-                    "Torpẻnte, quási pígro, & oti[ó]s[o]",
-                    new List<string>()
-                    {
-                        "Torpẻnte, quási pígro, & oti[ó]s[o]"
-                    }
+                    "Audíre",
+                    "Audód[o]", // TODO: unsure
+                    "Audíj",
+                    "Audít[o]",
+                }
             },
+            {
+                "Dissegnáre, &c.",
+                new List<string>
+                {
+                    "Dissegnáre, &c."
+                }
+            },
+            {
+                "Distrigáre, &c.",
+                new List<string>
+                {
+                    "Distrigáre, &c."
+                }
+            },
+            {
+                "Fémmina, &c.",
+                new List<string>
+                {
+                    "Fémmina, &c."
+                }
+            },
+            {
+                "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni",
+                new List<string>
+                {
+                    "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni"
+                }
+            },
+            {
+                "S[o]prandáre, uád[o], andái, andát[o]",
+                new List<string>
+                {
+                    "S[o]prandáre",
+                    "S[o]pranduád[o]",
+                    "S[o]prandái",
+                    "S[o]prandát[o]",
+                }
+            },
+            {
+                "Torpẻnte, quási pígro, & oti[ó]s[o]",
+                new List<string>
+                {
+                    "Torpẻnte, quási pígro, & oti[ó]s[o]"
+                }
+            },
+            {
+                "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
+                new List<string>
+                {
+                    // TODO: unsure
+                    "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
+                    "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
+                    "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
+                    "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
+                }
+            },
+            {
+                "Z[o]nze[ó]ne, ún[o] chè n[o]n fà chè andáre a spáss[o]",
+                new List<string>
+                {
+                    "Z[o]nze[ó]ne, ún[o] chè n[o]n fà chè andáre a spáss[o]"
+                }
+            }
         };
 
         public static TheoryData<string, IEnumerable<string>> DefinitionsWithReferences => new()

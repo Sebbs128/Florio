@@ -39,7 +39,7 @@ if (File.Exists(onnxFilePath))
 if (modelGen is null)
 {
     modelGen = embeddingsModelFactory.CreateFromData(wordDefinitions
-        .Select(wd => StringUtilities.Normalize(wd.Word)));
+        .Select(wd => StringUtilities.GetPrintableNormalizedString(wd.Word)));
 
     try
     {
@@ -63,7 +63,7 @@ await vectorStore.UpsertBatchAsync(mlNetVectorCollectionName, wordDefinitions
         id: $"{wd.Word}_{Guid.NewGuid()}",
         text: wd.Word,
         description: wd.Definition,
-        embedding: modelGen.CalculateVector(StringUtilities.Normalize(wd.Word)),
+        embedding: modelGen.CalculateVector(StringUtilities.GetPrintableNormalizedString(wd.Word)),
         additionalMetadata: wd.ReferencedWords is not null ? JsonSerializer.Serialize(wd.ReferencedWords) : null)))
     .CountAsync();
 
@@ -76,7 +76,7 @@ string[] tests =
 
 foreach (var testWord in tests)
 {
-    var normalisedWord = StringUtilities.Normalize(testWord);
+    var normalisedWord = StringUtilities.GetPrintableNormalizedString(testWord);
     (MemoryRecord Record, double Similarity)? bestMatch =
         await vectorStore.GetNearestMatchAsync(mlNetVectorCollectionName, modelGen.CalculateVector(normalisedWord));
 

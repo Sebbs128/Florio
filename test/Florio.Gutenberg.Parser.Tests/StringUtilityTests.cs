@@ -23,7 +23,7 @@
         [InlineData("[Ó]ber[o]", "obero")]
         public void NormalizeString_ReturnsExpected(string input, string expected)
         {
-            string actual = StringUtilities.Normalize(input);
+            string actual = StringUtilities.GetPrintableNormalizedString(input);
 
             Assert.Equal(expected, actual);
         }

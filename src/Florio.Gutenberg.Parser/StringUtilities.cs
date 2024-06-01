@@ -18,17 +18,28 @@ namespace Florio.Gutenberg.Parser
         }
 
         /// <summary>
-        /// Converts a string to a plain ASCII form by removing accents, 
+        /// Converts a string to a plain ASCII form by removing diacritics
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string GetNormalizedString(string input)
+        {
+            return new string(input
+                .Normalize(NormalizationForm.FormD)
+                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                .ToArray());
+        }
+
+        /// <summary>
+        /// Converts a string to a plain ASCII form by removing diacritics, 
         /// and symbols the Project Gutenberg transcribers added to denote pronunciation
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static string Normalize(string input)
+        public static string GetPrintableNormalizedString(string input)
         {
-            return GetPrintableString(new string(input
-                .Normalize(NormalizationForm.FormD)
-                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                .ToArray()))
+            return GetPrintableString(
+                GetNormalizedString(input))
                 .ToLowerInvariant();
         }
     }
