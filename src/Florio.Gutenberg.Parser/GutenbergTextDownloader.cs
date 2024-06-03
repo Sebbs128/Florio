@@ -13,9 +13,14 @@ namespace Florio.Gutenberg.Parser
 
         public async IAsyncEnumerable<string> ReadLines([EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             using var stream = await _httpClient.GetStreamAsync(Constants.Gutenberg_Text_Url);
             using var reader = new StreamReader(stream);
-            while (!reader.EndOfStream)
+            while (!(reader.EndOfStream || cancellationToken.IsCancellationRequested))
             {
                 var line = await reader.ReadLineAsync(cancellationToken);
                 if (line is not null)

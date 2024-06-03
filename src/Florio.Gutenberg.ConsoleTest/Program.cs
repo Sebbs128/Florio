@@ -1,14 +1,16 @@
 ﻿using System.Diagnostics;
+using System.Text;
 
 using Florio.Gutenberg.Parser;
+using Florio.Gutenberg.Parser.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 
-var services = new ServiceCollection()
-    .AddSingleton<IGutenbergTextDownloader, GutenbergTextDownloader>()
-    .AddSingleton<GutenbergTextParser>();
+Console.OutputEncoding = Encoding.UTF8;
 
-services.AddHttpClient<GutenbergTextDownloader>();
+var services = new ServiceCollection()
+    .AddGutenbergDownloaderAndParser(@".localassets\pg56200.txt");
+
 var serviceProvider = services.BuildServiceProvider();
 
 var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
@@ -25,8 +27,17 @@ Console.WriteLine();
 Console.WriteLine($"Longest definition ({longestDefinition.Definition.Length} chars): {longestDefinition.Definition}");
 Console.WriteLine();
 
+var potentialWordVariationIssues = wordDefinitions
+    .Select(wd => wd.Word)
+    .Where(w => char.IsLower(w, 0))
+    .ToList();
+
+Console.WriteLine($"Words that appear to be incorrectly parsed word variations:");
+Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
+Console.WriteLine();
+
 var containingBrackets = wordDefinitions
-    .Select(wd => StringUtilities.Normalize(wd.Word))
+    .Select(wd => wd.Word.GetPrintableNormalizedString())
     .Where(w => w.IndexOfAny(['[', ']']) > 0)
     .ToList();
 
@@ -34,7 +45,7 @@ if (containingBrackets.Count != 0)
     Debugger.Break();
 
 var charsInAllWords = wordDefinitions
-    .SelectMany(wd => StringUtilities.Normalize(wd.Word))
+    .SelectMany(wd => wd.Word.GetPrintableNormalizedString())
     .Distinct()
     .Order()
     .Select(c => $"'{c}'")
