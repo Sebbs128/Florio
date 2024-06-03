@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 
 using Florio.Gutenberg.Parser;
+using Florio.Gutenberg.Parser.Extensions;
 using Florio.Gutenberg.VectorModel;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,7 @@ if (File.Exists(onnxFilePath))
 if (modelGen is null)
 {
     modelGen = embeddingsModelFactory.CreateFromData(wordDefinitions
-        .Select(wd => StringUtilities.GetPrintableNormalizedString(wd.Word)));
+        .Select(wd => wd.Word.GetPrintableNormalizedString()));
 
     try
     {
@@ -63,7 +64,7 @@ await vectorStore.UpsertBatchAsync(mlNetVectorCollectionName, wordDefinitions
         id: $"{wd.Word}_{Guid.NewGuid()}",
         text: wd.Word,
         description: wd.Definition,
-        embedding: modelGen.CalculateVector(StringUtilities.GetPrintableNormalizedString(wd.Word)),
+        embedding: modelGen.CalculateVector(wd.Word.GetPrintableNormalizedString()),
         additionalMetadata: wd.ReferencedWords is not null ? JsonSerializer.Serialize(wd.ReferencedWords) : null)))
     .CountAsync();
 
@@ -76,7 +77,7 @@ string[] tests =
 
 foreach (var testWord in tests)
 {
-    var normalisedWord = StringUtilities.GetPrintableNormalizedString(testWord);
+    var normalisedWord = testWord.GetPrintableNormalizedString();
     (MemoryRecord Record, double Similarity)? bestMatch =
         await vectorStore.GetNearestMatchAsync(mlNetVectorCollectionName, modelGen.CalculateVector(normalisedWord));
 

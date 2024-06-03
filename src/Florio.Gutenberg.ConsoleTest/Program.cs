@@ -37,7 +37,7 @@ Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
 Console.WriteLine();
 
 var containingBrackets = wordDefinitions
-    .Select(wd => StringUtilities.GetPrintableNormalizedString(wd.Word))
+    .Select(wd => wd.Word.GetPrintableNormalizedString())
     .Where(w => w.IndexOfAny(['[', ']']) > 0)
     .ToList();
 
@@ -45,7 +45,7 @@ if (containingBrackets.Count != 0)
     Debugger.Break();
 
 var charsInAllWords = wordDefinitions
-    .SelectMany(wd => StringUtilities.GetPrintableNormalizedString(wd.Word))
+    .SelectMany(wd => wd.Word.GetPrintableNormalizedString())
     .Distinct()
     .Order()
     .Select(c => $"'{c}'")

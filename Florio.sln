@@ -21,9 +21,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{514D6FB0-56C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{303993C7-E22F-4DBC-8EDC-A96B7CD28436}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Florio.Gutenberg.VectorTesting", "src\Florio.Gutenberg.VectorTesting\Florio.Gutenberg.VectorTesting.csproj", "{4F38B85A-968B-4360-B089-602B1EF0D1D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.VectorTesting", "src\Florio.Gutenberg.VectorTesting\Florio.Gutenberg.VectorTesting.csproj", "{4F38B85A-968B-4360-B089-602B1EF0D1D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Florio.Gutenberg.VectorEmbeddings", "src\Florio.Gutenberg.VectorEmbeddings\Florio.Gutenberg.VectorEmbeddings.csproj", "{69AADCFE-63D2-4EC9-9D29-BC2BA0155B81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Gutenberg.VectorEmbeddings", "src\Florio.Gutenberg.VectorEmbeddings\Florio.Gutenberg.VectorEmbeddings.csproj", "{69AADCFE-63D2-4EC9-9D29-BC2BA0155B81}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A15D1411-304D-4B22-BEAD-161D425A8AE7}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,20 +3,19 @@
 using ClosedXML.Excel;
 
 using Florio.Gutenberg.Parser;
+using Florio.Gutenberg.Parser.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection()
-    .AddSingleton<IGutenbergTextDownloader, GutenbergTextDownloader>()
-    .AddSingleton<GutenbergTextParser>();
+    .AddGutenbergDownloaderAndParser(@".localassets\pg56200.txt");
 
-services.AddHttpClient<GutenbergTextDownloader>();
 var serviceProvider = services.BuildServiceProvider();
 
 var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
 
 var byFirstLetter = await parser.ParseLines()
-    .ToLookupAsync(wd => StringUtilities.GetPrintableNormalizedString(wd.Word).First());
+    .ToLookupAsync(wd => wd.Word.GetPrintableNormalizedString().First());
 
 using var excelFile = new XLWorkbook();
 
@@ -51,7 +50,8 @@ foreach (var letterGroup in byFirstLetter.OrderBy(l => l.Key))
     row.Cell(2).CreateRichText().AddText("Definition").SetBold();
     row.Cell(3).CreateRichText().AddText("Phrases or Referenced Words").SetBold();
 
-    foreach (var wordDefinition in letterGroup)
+    foreach (var wordDefinition in letterGroup
+        .OrderBy(wd => wd.Word.GetPrintableNormalizedString(), StringComparer.InvariantCultureIgnoreCase))
     {
         row = row.RowBelow();
         row.Cell(1).CreateRichText().AddText(wordDefinition.Word);
