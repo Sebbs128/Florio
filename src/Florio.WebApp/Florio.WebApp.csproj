@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.Gutenberg.Parser\Florio.Gutenberg.Parser.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
+        <ProjectReference Include="..\Florio.ServiceDefaults\Florio.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings.Qdrant\Florio.VectorEmbeddings.Qdrant.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Qdrant.Client" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Pages\Shared\Components\" />
+    </ItemGroup>
+
+</Project>

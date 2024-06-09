@@ -1,4 +1,4 @@
-﻿using Florio.Gutenberg.Parser.Extensions;
+﻿using Florio.Data;
 
 namespace Florio.Gutenberg.Parser.Tests;
 
@@ -12,7 +12,8 @@ public class StringExtensionsTests
     [InlineData("[Ó]ber[o]", "Óbero")]
     public void GetPrintableString_ReturnsExpected(string input, string expected)
     {
-        string actual = StringExtensions.GetPrintableString(input);
+        IStringFormatter stringFormatter = new StringFormatter();
+        string actual = stringFormatter.ToPrintableString(input);
 
         Assert.Equal(expected, actual);
     }
@@ -25,7 +26,8 @@ public class StringExtensionsTests
     [InlineData("[Ó]ber[o]", "obero")]
     public void NormalizeString_ReturnsExpected(string input, string expected)
     {
-        string actual = StringExtensions.GetPrintableNormalizedString(input);
+        IStringFormatter stringFormatter = new StringFormatter();
+        string actual = stringFormatter.ToPrintableNormalizedString(input);
 
         Assert.Equal(expected, actual);
     }

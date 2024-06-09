@@ -1,4 +1,6 @@
-﻿namespace Florio.Gutenberg.Parser.Tests;
+﻿using Florio.Data;
+
+namespace Florio.Gutenberg.Parser.Tests;
 
 public class GutenbergTextParserTests
 {

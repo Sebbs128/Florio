@@ -1,0 +1,17 @@
+﻿@page "{word?}"
+@model Florio.WebApp.Pages.ItalianModel
+@{
+    var word = (await Model.WordDefinition.FirstAsync()).Word;
+    ViewData["Title"] = word;
+}
+
+<p class="fs-1">
+    @word.ToHtmlString()
+</p>
+
+@await foreach (var wordDefinition in Model.WordDefinition)
+{
+    <p class="mb-3">
+        <render referenced-words="@wordDefinition.ReferencedWords">@wordDefinition.Definition</render>
+    </p>
+}

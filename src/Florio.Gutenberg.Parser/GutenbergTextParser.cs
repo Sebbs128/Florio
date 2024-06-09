@@ -1,9 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
+
+using Florio.Data;
 
 namespace Florio.Gutenberg.Parser;
 
-public class GutenbergTextParser(IGutenbergTextDownloader downloader)
+public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDefinitionParser
 {
     private readonly IGutenbergTextDownloader _downloader = downloader;
 
@@ -114,7 +117,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader)
         // skip false cases, where the Word is empty
         if (!string.IsNullOrEmpty(definitionLine.Word))
         {
-            definitionLine = CheckAndHandleIdem(state.PreviousDefinition, definitionLine);
+            definitionLine = CheckAndHandleIdem(definitionLine, state.PreviousDefinition);
 
             state.UpdatePreviousDefinition(definitionLine);
 
@@ -244,7 +247,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader)
     // TODO: consider adding the word matching to the previous definition as a referenced word?
     //       - might be very difficult/impossible as WordDefinition is immutable, and
     //         ReferencedWords is an array
-    internal static WordDefinition CheckAndHandleIdem(WordDefinition previousDefinition, WordDefinition definitionLine)
+    internal static WordDefinition CheckAndHandleIdem(WordDefinition definitionLine, WordDefinition previousDefinition)
     {
         // handle "idem.", meaning "as above"
         // - may be
@@ -290,6 +293,11 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader)
             if (parts[i].StartsWith("a, b, c", StringComparison.InvariantCultureIgnoreCase))
             {
                 continue;
+            }
+
+            if (parts[i].IndexOf(',') > 0 && parts[i] is not [.., ','])
+            {
+                Debugger.Break();
             }
 
             yield return parts[i]

@@ -1,0 +1,13 @@
+﻿@page
+@model Florio.WebApp.Pages.AutocompleteModel
+
+@{
+    Layout = null;
+}
+
+@foreach (var word in Model.Results)
+{
+    <li>
+        <a class="dropdown-item" asp-page="Italian" asp-route-word="@word">@word</a>
+    </li>
+}

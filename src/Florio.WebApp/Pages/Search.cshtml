@@ -1,0 +1,28 @@
+﻿@page
+@inject Florio.Data.IStringFormatter stringFormatter
+@model Florio.WebApp.Pages.SearchModel
+@{
+    ViewData["Title"] = string.IsNullOrEmpty(Model.Term)
+        ? "Search"
+        : $"""Search results for "{Model.Term}" """;
+}
+
+<partial name="_SearchBar" model="new SearchBarModel { IsInNavBar = false, CurrentSearch = Model.Term }" />
+
+@if (await Model.Results.AnyAsync())
+{
+    <ul class="list-group list-group-flush">
+        @await foreach (var result in Model.Results)
+        {
+            <li class="list-group-item">
+                <span class="fs-5">
+                    <a asp-page="Italian" asp-route-word="@(stringFormatter.ToPrintableNormalizedString(result.Word))">
+                        @result.Word.ToHtmlString()
+                    </a>
+                </span>
+                <br />
+                <render referenced-words="@result.ReferencedWords">@result.Definition</render>
+            </li>
+        }
+    </ul>
+}

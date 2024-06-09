@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 
-using Florio.Gutenberg.Parser;
-using Florio.Gutenberg.Parser.Extensions;
+using Florio.Data;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,8 @@ var services = new ServiceCollection()
 
 var serviceProvider = services.BuildServiceProvider();
 
-var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
+var stringFormatter = serviceProvider.GetRequiredService<IStringFormatter>();
+var parser = serviceProvider.GetRequiredService<IWordDefinitionParser>();
 var wordDefinitions = await parser.ParseLines().ToListAsync();
 
 Console.WriteLine($"{wordDefinitions.Count} words were parsed.");
@@ -37,7 +37,7 @@ Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
 Console.WriteLine();
 
 var containingBrackets = wordDefinitions
-    .Select(wd => wd.Word.GetPrintableNormalizedString())
+    .Select(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
     .Where(w => w.IndexOfAny(['[', ']']) > 0)
     .ToList();
 
@@ -45,7 +45,7 @@ if (containingBrackets.Count != 0)
     Debugger.Break();
 
 var charsInAllWords = wordDefinitions
-    .SelectMany(wd => wd.Word.GetPrintableNormalizedString())
+    .SelectMany(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
     .Distinct()
     .Order()
     .Select(c => $"'{c}'")
