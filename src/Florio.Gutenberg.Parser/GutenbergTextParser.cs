@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
 using Florio.Data;
@@ -204,15 +203,28 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     //   refer the reader to my rules at the word_ Chè.
     internal static WordDefinition GetDefinitionLine(string line)
     {
+        static bool IsSpecialCaseTranscriptionError(string line) =>
+            line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_', StringComparison.OrdinalIgnoreCase);
+
+        static bool IsSpecialCaseSingleWordVariations_or_PrecedesCommaSpaceUnderscore(string line) =>
+            (uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.OrdinalIgnoreCase);
+
+        static bool IsSpecialCaseVariationsWithMultiple_or_(string line) =>
+            line.StartsWith("Precédere", StringComparison.Ordinal) || (line.StartsWith("V[o]lére", StringComparison.Ordinal)
+            && line.Contains("_or_", StringComparison.Ordinal));
+
         int index;
         // special-case the Vliuígn[o] edge-case
         // fixed in PG as of 2024-05-30
-        if (line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_', StringComparison.OrdinalIgnoreCase))
+        if (IsSpecialCaseTranscriptionError(line))
         {
             index = line.IndexOf(',', StringComparison.OrdinalIgnoreCase);
         }
-        // special-case edge cases like "Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o]"
-        else if ((uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.OrdinalIgnoreCase))
+        // special-case edge cases like
+        // "Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o]"
+        // "Precédere, céd[o], cedéi, _or_ cẻssi, cedút[o] _or_ cẻsso"
+        // "V[o]lére, vógli[o], _or_ vò, vólli _or_ vólsi, v[o]lút[o]"
+        else if (IsSpecialCaseSingleWordVariations_or_PrecedesCommaSpaceUnderscore(line) || IsSpecialCaseVariationsWithMultiple_or_(line))
         {
             // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
             index = line.StartsWith("Fátt[o]", StringComparison.InvariantCulture)
@@ -295,10 +307,10 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                 continue;
             }
 
-            if (parts[i].IndexOf(',') > 0 && parts[i] is not [.., ','])
-            {
-                Debugger.Break();
-            }
+            //if (parts[i].IndexOf(',') > 0 && parts[i] is not [.., ','])
+            //{
+            //    Debugger.Break();
+            //}
 
             yield return parts[i]
                 .Replace("&c", "", StringComparison.OrdinalIgnoreCase)
@@ -321,6 +333,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     {
         static bool IsSpecialEdgeCase(string word) =>
             word.Equals("Fattaménte, si", StringComparison.InvariantCulture) || // this is a phrase
+                                                                                // these have been fixed in PG as of 2024-06-06
             word.Equals("Marẻa, the", StringComparison.InvariantCulture) || // this is a transcription error
             word.Equals("Méschi[o],ed", StringComparison.InvariantCulture); // this is a transcription error
 
