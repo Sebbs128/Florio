@@ -8,6 +8,8 @@ using Google.Protobuf.Collections;
 
 using Grpc.Core;
 
+using Polly;
+
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -20,6 +22,22 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
 
     private static readonly TimeSpan _delay = TimeSpan.FromSeconds(10);
 
+    private static readonly ResiliencePipeline _collectionExistsStartupPipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new Polly.Retry.RetryStrategyOptions
+        {
+            Delay = TimeSpan.FromSeconds(10),
+            ShouldHandle = new PredicateBuilder().Handle<RpcException>(),
+            MaxRetryAttempts = 10
+        })
+        .Build();
+    private static readonly ResiliencePipeline _upsertBatchPipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new Polly.Retry.RetryStrategyOptions
+        {
+            Delay = TimeSpan.FromSeconds(1),
+            UseJitter = true
+        })
+        .Build();
+
     /// <summary>
     /// Creates the collection if it didn't already exist,
     /// and returns whether the collection existed prior to calling the method.
@@ -29,24 +47,11 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
     public async Task<bool> CollectionExists(CancellationToken cancellationToken)
     {
         // during startup, Qdrant may take a moment to load the collection from disk
-        for (int i = 0; i < 10; i++)
+        return await _collectionExistsStartupPipeline.ExecuteAsync(async cancelToken =>
         {
-            try
-            {
-                if (await _qdrantClient.CollectionExistsAsync(_settings.CollectionName, cancellationToken))
-                {
-                    // ensure it has some data (eg. in case someone deleted all data in the collection to force a reload)
-                    var info = await _qdrantClient.GetCollectionInfoAsync(_settings.CollectionName, cancellationToken);
-                    return info.Status == CollectionStatus.Green && info.HasIndexedVectorsCount;
-                }
-                return false;
-            }
-            catch (Grpc.Core.RpcException rpcException) when (rpcException.StatusCode == StatusCode.Unavailable)
-            {
-                await Task.Delay(_delay, cancellationToken);
-            }
-        }
-        return false;
+            var info = await _qdrantClient.GetCollectionInfoAsync(_settings.CollectionName, cancelToken);
+            return info.Status == CollectionStatus.Green && info.HasIndexedVectorsCount;
+        }, cancellationToken);
     }
 
     public async Task CreateCollection(int vectorSize, CancellationToken cancellationToken)
@@ -177,14 +182,14 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
 
         for (int i = 0; i < records.Count; i += batchSize)
         {
-            var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName,
-                records.Skip(i).Take(batchSize).ToList(),
-                wait: true,
-                cancellationToken: cancellationToken);
-            Debug.Assert(updateResult.Status == UpdateStatus.Completed);
-            await Task.Delay(1000, cancellationToken);
+            await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
+            {
+                var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName,
+                    records.Skip(i).Take(batchSize).ToList(),
+                    wait: true,
+                    cancellationToken: cancelToken);
+                Debug.Assert(updateResult.Status == UpdateStatus.Completed);
+            }, cancellationToken);
         }
     }
-
-    public IAsyncEnumerable<WordDefinition> FindByWord(string search, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 }
