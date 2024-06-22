@@ -16,39 +16,79 @@ var stringFormatter = serviceProvider.GetRequiredService<IStringFormatter>();
 var parser = serviceProvider.GetRequiredService<IWordDefinitionParser>();
 var wordDefinitions = await parser.ParseLines().ToListAsync();
 
-Console.WriteLine($"{wordDefinitions.Count} words were parsed.");
-Console.WriteLine();
+PrintTotalCount(wordDefinitions);
 
-var longestWord = wordDefinitions.MaxBy(wd => wd.Word.Length);
-var longestDefinition = wordDefinitions.MaxBy(wd => wd.Definition.Length);
+PrintMaxLengths(wordDefinitions);
 
-Console.WriteLine($"Longest word ({longestWord.Word.Length} chars): {longestWord.Word}");
-Console.WriteLine();
-Console.WriteLine($"Longest definition ({longestDefinition.Definition.Length} chars): {longestDefinition.Definition}");
-Console.WriteLine();
+PrintAnyPossibleVariationIssues(wordDefinitions);
 
-var potentialWordVariationIssues = wordDefinitions
-    .Select(wd => wd.Word)
-    .Where(w => char.IsLower(w, 0))
-    .ToList();
+CheckForMissedSquareBrackets(stringFormatter, wordDefinitions);
 
-Console.WriteLine($"Words that appear to be incorrectly parsed word variations:");
-Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
-Console.WriteLine();
+PrintCharactersFoundInWords(stringFormatter, wordDefinitions);
 
-var containingBrackets = wordDefinitions
-    .Select(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
-    .Where(w => w.IndexOfAny(['[', ']']) > 0)
-    .ToList();
+static void PrintTotalCount(List<WordDefinition> wordDefinitions)
+{
+    Console.WriteLine($"{wordDefinitions.Count} words were parsed.");
+    Console.WriteLine();
+}
 
-if (containingBrackets.Count != 0)
-    Debugger.Break();
+static void PrintMaxLengths(List<WordDefinition> wordDefinitions)
+{
+    var longestWord = wordDefinitions.MaxBy(wd => wd.Word.Length);
+    var longestDefinition = wordDefinitions.MaxBy(wd => wd.Definition.Length);
 
-var charsInAllWords = wordDefinitions
-    .SelectMany(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
-    .Distinct()
-    .Order()
-    .Select(c => $"'{c}'")
-    .ToArray();
+    Console.WriteLine($"Longest word ({longestWord.Word.Length} chars): {longestWord.Word}");
+    Console.WriteLine();
+    Console.WriteLine($"Longest definition ({longestDefinition.Definition.Length} chars): {longestDefinition.Definition}");
+    Console.WriteLine();
+}
 
-Console.WriteLine($"Characters used in words: {string.Join(", ", charsInAllWords)}");
+static void PrintAnyPossibleVariationIssues(List<WordDefinition> wordDefinitions)
+{
+    var potentialWordVariationIssues = wordDefinitions
+        .Select(wd => wd.Word)
+        .Where(w => char.IsLower(w, 0))
+        .ToList();
+
+    Console.WriteLine($"Words that appear to be incorrectly parsed word variations:");
+    Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
+    Console.WriteLine();
+}
+
+static void CheckForMissedSquareBrackets(IStringFormatter stringFormatter, List<WordDefinition> wordDefinitions)
+{
+    var containingBrackets = wordDefinitions
+        .Select(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
+        .Where(w => w.IndexOfAny(['[', ']']) > 0)
+        .ToList();
+
+    if (containingBrackets.Count != 0)
+    {
+        Debugger.Break();
+    }
+}
+
+static void PrintCharactersFoundInWords(IStringFormatter stringFormatter, List<WordDefinition> wordDefinitions)
+{
+    var charsInAllWords = wordDefinitions
+        .SelectMany(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
+        .Distinct()
+        .Order()
+        .Select(c => $"'{c}'")
+        .ToArray();
+
+    Console.WriteLine($"Characters used in words: {string.Join(", ", charsInAllWords)}");
+    Console.WriteLine();
+
+    char[] unexpectedCharacters = ['&', ',', '-', '?'];
+    foreach (char c in unexpectedCharacters)
+    {
+        var words = wordDefinitions
+            .Select(wd => stringFormatter.ToPrintableNormalizedString(wd.Word))
+            .Where(w => w.Contains(c));
+
+        Console.WriteLine($"Words containing '{c}':");
+        Console.WriteLine(string.Join('\n', words));
+        Console.WriteLine();
+    }
+}

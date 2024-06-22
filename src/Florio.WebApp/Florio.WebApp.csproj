@@ -21,6 +21,7 @@
 
     <ItemGroup>
       <Folder Include="Pages\Shared\Components\" />
+      <Folder Include="ViewComponents\" />
     </ItemGroup>
 
 </Project>

@@ -159,6 +159,8 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         IReadOnlyList<WordDefinitionEmbedding> values,
         CancellationToken cancellationToken = default)
     {
+        const int batchSize = 5_000;
+
         var records = values
             .Select((v, i) => new PointStruct
             {
@@ -172,10 +174,16 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
                 }
             })
             .ToList();
-        var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName, records,
-            wait: true,
-            cancellationToken: cancellationToken);
-        Debug.Assert(updateResult.Status == UpdateStatus.Completed);
+
+        for (int i = 0; i < records.Count; i += batchSize)
+        {
+            var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName,
+                records.Skip(i).Take(batchSize).ToList(),
+                wait: true,
+                cancellationToken: cancellationToken);
+            Debug.Assert(updateResult.Status == UpdateStatus.Completed);
+            await Task.Delay(1000, cancellationToken);
+        }
     }
 
     public IAsyncEnumerable<WordDefinition> FindByWord(string search, CancellationToken cancellationToken = default) => throw new NotImplementedException();

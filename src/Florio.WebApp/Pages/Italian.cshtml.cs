@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Florio.WebApp.Pages;
 
 public class ItalianModel(
-    IVectorEmbeddingModelFactory embeddingsModel,
+    IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,
     IStringFormatter stringFormatter) : PageModel
 {
-    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModel.GetModel();
+    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModelFactory.GetModel();
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
 
@@ -30,8 +30,6 @@ public class ItalianModel(
         }
 
         var vector = _embeddingsModel.CalculateVector(_stringFormatter.ToPrintableNormalizedString(Word));
-
-        // TODO: need to account for multiple matches for a single word
 
         WordDefinition = _repository.FindClosestMatch(vector, HttpContext.RequestAborted);
 

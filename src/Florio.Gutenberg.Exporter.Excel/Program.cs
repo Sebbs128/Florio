@@ -13,7 +13,7 @@ var services = new ServiceCollection()
 var serviceProvider = services.BuildServiceProvider();
 
 var stringFormatter = serviceProvider.GetRequiredService<IStringFormatter>();
-var parser = serviceProvider.GetRequiredService<GutenbergTextParser>();
+var parser = serviceProvider.GetRequiredService<IWordDefinitionParser>();
 
 var byFirstLetter = await parser.ParseLines()
     .ToLookupAsync(wd => stringFormatter.ToPrintableNormalizedString(wd.Word).First());
@@ -61,6 +61,7 @@ foreach (var letterGroup in byFirstLetter.OrderBy(l => l.Key))
         var parts = wordDefinition.Definition.Split('_', StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < parts.Length; i++)
         {
+            // TODO handle superscript (RichText.VerticalAlignment = XLFontVerticalTextAlignmentValues.Superscript)
             definitionCellRichText.AddText(parts[i]).SetItalic(i % 2 == 0);
         }
 

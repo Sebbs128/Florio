@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace Florio.WebApp.Pages;
 
 public class SearchModel(
-    IVectorEmbeddingModelFactory embeddingsModel,
+    IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,
     IStringFormatter stringFormatter) : PageModel
 {
-    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModel.GetModel();
+    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModelFactory.GetModel();
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
 

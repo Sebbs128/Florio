@@ -5,13 +5,13 @@
     ViewData["Title"] = word;
 }
 
-<p class="fs-1">
+<h1 class="fs-1 fw-light">
     @word.ToHtmlString()
-</p>
+</h1>
 
 @await foreach (var wordDefinition in Model.WordDefinition)
 {
     <p class="mb-3">
-        <render referenced-words="@wordDefinition.ReferencedWords">@wordDefinition.Definition</render>
+        <render-definition word-definition="@wordDefinition"></render-definition>
     </p>
 }

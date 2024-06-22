@@ -40,7 +40,7 @@ internal class EmbeddingsInitializerService(
         {
             // ensure the vector db actually has data
             var vector = model!.CalculateVector("a");
-            dbHasData = await _repository.FindClosestMatch(vector, cancellationToken).AnyAsync();
+            dbHasData = await _repository.FindClosestMatch(vector, cancellationToken).AnyAsync(cancellationToken);
             if (dbHasData)
             {
                 _logger.LogInformation("Vector Database and Embeddings Model both exist.");

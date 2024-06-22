@@ -2,6 +2,7 @@
 using System.Text;
 
 using Florio.Data;
+using Florio.Gutenberg.Parser.Extensions;
 
 namespace Florio.Gutenberg.Parser;
 
@@ -106,36 +107,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         }
     }
 
-    internal static IEnumerable<WordDefinition> ParseBuiltLine(StringBuilder lineBuilder, ParserState state)
-    {
-        var fullLine = lineBuilder.ToString().Trim();
-        lineBuilder.Clear();
-
-        var definitionLine = GetDefinitionLine(fullLine);
-
-        // skip false cases, where the Word is empty
-        if (!string.IsNullOrEmpty(definitionLine.Word))
-        {
-            definitionLine = CheckAndHandleIdem(definitionLine, state.PreviousDefinition);
-
-            state.UpdatePreviousDefinition(definitionLine);
-
-            foreach (var variant in GetVariations(definitionLine.Word))
-            {
-                yield return definitionLine with
-                {
-                    Word = variant
-                };
-            }
-        }
-        else
-        {
-            // hit a case where no word is identified
-            // there are some expected instances of this
-            //Debugger.Break();
-        }
-    }
-
     internal class ParserState
     {
         public bool HaveReachedEntries { get; private set; } = false;
@@ -169,6 +140,121 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         }
     }
 
+    internal static IEnumerable<WordDefinition> ParseBuiltLine(StringBuilder lineBuilder, ParserState state)
+    {
+        var fullLine = lineBuilder.ToString().Trim();
+        lineBuilder.Clear();
+
+        var definitionLine = ParseWordDefinition(fullLine);
+
+        // skip false cases, where the Word is empty
+        if (!string.IsNullOrEmpty(definitionLine.Word))
+        {
+            definitionLine = CheckAndHandleIdem(definitionLine, state.PreviousDefinition);
+
+            state.UpdatePreviousDefinition(definitionLine);
+
+            foreach (var variant in GetVariations(definitionLine.Word))
+            {
+                yield return definitionLine with
+                {
+                    Word = variant
+                };
+            }
+        }
+        else
+        {
+            // hit a case where no word is identified
+            // there are some expected instances of this
+            //Debugger.Break();
+        }
+    }
+
+    // False cases:
+    // - _Note that wheresoeuer_ AV, _commeth before any vowell, the_ V _may 
+    //   euer be written and pronounced double or single, as pleaseth the writer
+    //   or speaker; for you may euer write and say_ Auuacciáre, Auuedére,
+    //   Auual[o] ráre, Auuampáre, Auueníre, Auu[o]l[o] ntáre, Auuinacciáre, &c.
+    // - _As for the words that are ioyned vnto_ Chè, _which are very many I
+    //   refer the reader to my rules at the word_ Chè.
+    internal static WordDefinition ParseWordDefinition(string line)
+    {
+        // special casing the definition of Vliuígn[o] that contains a transcription error. This returns false when the error is fixed.
+        static bool IsSpecialCaseTranscriptionError(string line) =>
+            line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_', StringComparison.OrdinalIgnoreCase);
+
+        static bool IsSpecialCaseWordVariationsWhere_or_PrecedesCommaSpaceUnderscore(string line) =>
+            (uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.OrdinalIgnoreCase);
+
+        // there are two definitions for V[o]lére, so we need to ensure we're just special casing the one containing variations
+        static bool IsSpecialCaseVariationsWithMultiple_or_(string line) =>
+            line.StartsWith("Deuére", StringComparison.Ordinal) ||
+            line.StartsWith("Precédere", StringComparison.Ordinal) ||
+            (line.StartsWith("V[o]lére", StringComparison.Ordinal) && line.Contains(", _or_ ", StringComparison.Ordinal));
+
+        int index;
+        // special-case the Vliuígn[o] edge-case
+        // fixed in PG as of 2024-05-30
+        if (IsSpecialCaseTranscriptionError(line))
+        {
+            index = line.IndexOf(',', StringComparison.OrdinalIgnoreCase);
+        }
+        // special-case edge cases like
+        // "Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o]"
+        // "Precédere, céd[o], cedéi, _or_ cẻssi, cedút[o] _or_ cẻsso"
+        // "V[o]lére, vógli[o], _or_ vò, vólli _or_ vólsi, v[o]lút[o]"
+        else if (IsSpecialCaseWordVariationsWhere_or_PrecedesCommaSpaceUnderscore(line) || IsSpecialCaseVariationsWithMultiple_or_(line))
+        {
+            // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
+            index = line.StartsWith("Fátt[o]", StringComparison.Ordinal)
+                ? line.IndexOf(", _", StringComparison.OrdinalIgnoreCase)
+                : line.IndexOf(", _", line.LastIndexOf("_or_", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
+        }
+        else
+        {
+            index = line.IndexOf('_');
+        }
+
+        var wordDefintion = new WordDefinition(
+            Word: CleanInconsistencies(line[..index].Trim(',', ' ', ';')),
+            Definition: ParseDefinition(line[index..].Trim(',', ' ')));
+
+        return wordDefintion with
+        {
+            ReferencedWords = GetReferencedWords(wordDefintion.Definition).Distinct().ToArray()
+        };
+
+        // some lines haven't had the HTML italics converted to the []
+        //   transcribers used <i>ò</i> to denote the long o pronunciation in the html file, but [ò] for the same in the markdown
+        // weird case: [er] is not covered in transcription notes.
+        //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
+        //   - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
+        // these have been fixed in PG as of 2024-05-30
+        static string CleanInconsistencies(string word) => word
+            .Replace("<i>", "[", StringComparison.Ordinal).Replace("</i>", "]", StringComparison.Ordinal)
+            .Replace("[er]", "er", StringComparison.Ordinal);
+
+        static string ParseDefinition(string definitionLine)
+        {
+            if (!definitionLine.Contains('}'))
+            {
+                return definitionLine;
+            }
+
+            var lines = definitionLine.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+
+            var examples = lines[1..]
+                .Select(l => l[..(l.IndexOf('}') + 1)])
+                .ToArray();
+
+            var examplesLabel = string.Join(" ", lines[1..]
+                .Select(l => l[(l.IndexOf('}') + 1)..].Trim())
+                .Where(l => !string.IsNullOrEmpty(l)));
+
+            return $"{lines[0]}\r\n\r\n{string.Join("\r\n", examples)} {examplesLabel}";
+        }
+    }
+
     internal static bool IsEndOfDefinitions(string line) =>
         line.Trim().Equals("FINIS.", StringComparison.Ordinal);
 
@@ -194,67 +280,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         line.StartsWith("Fáre a guísa délla", StringComparison.Ordinal) ||
         line.StartsWith("Vliuígn[o]", StringComparison.Ordinal); // this has been fixed in PG as of 2024-05-30
 
-    // False cases:
-    // - _Note that wheresoeuer_ AV, _commeth before any vowell, the_ V _may 
-    //   euer be written and pronounced double or single, as pleaseth the writer
-    //   or speaker; for you may euer write and say_ Auuacciáre, Auuedére,
-    //   Auual[o] ráre, Auuampáre, Auueníre, Auu[o]l[o] ntáre, Auuinacciáre, &c.
-    // - _As for the words that are ioyned vnto_ Chè, _which are very many I
-    //   refer the reader to my rules at the word_ Chè.
-    internal static WordDefinition GetDefinitionLine(string line)
-    {
-        static bool IsSpecialCaseTranscriptionError(string line) =>
-            line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_', StringComparison.OrdinalIgnoreCase);
-
-        static bool IsSpecialCaseSingleWordVariations_or_PrecedesCommaSpaceUnderscore(string line) =>
-            (uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.OrdinalIgnoreCase);
-
-        static bool IsSpecialCaseVariationsWithMultiple_or_(string line) =>
-            line.StartsWith("Precédere", StringComparison.Ordinal) || (line.StartsWith("V[o]lére", StringComparison.Ordinal)
-            && line.Contains("_or_", StringComparison.Ordinal));
-
-        int index;
-        // special-case the Vliuígn[o] edge-case
-        // fixed in PG as of 2024-05-30
-        if (IsSpecialCaseTranscriptionError(line))
-        {
-            index = line.IndexOf(',', StringComparison.OrdinalIgnoreCase);
-        }
-        // special-case edge cases like
-        // "Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o]"
-        // "Precédere, céd[o], cedéi, _or_ cẻssi, cedút[o] _or_ cẻsso"
-        // "V[o]lére, vógli[o], _or_ vò, vólli _or_ vólsi, v[o]lút[o]"
-        else if (IsSpecialCaseSingleWordVariations_or_PrecedesCommaSpaceUnderscore(line) || IsSpecialCaseVariationsWithMultiple_or_(line))
-        {
-            // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
-            index = line.StartsWith("Fátt[o]", StringComparison.InvariantCulture)
-                ? line.IndexOf(", _", StringComparison.OrdinalIgnoreCase)
-                : line.IndexOf(", _", line.LastIndexOf("_or_", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
-        }
-        else
-        {
-            index = line.IndexOf('_');
-        }
-
-        var wordDefintion = new WordDefinition(
-            Word: CleanInconsistencies(line[..index].Trim(',', ' ', ';')),
-            Definition: line[index..].Trim(',', ' '));
-
-        return wordDefintion with
-        {
-            ReferencedWords = GetReferencedWords(wordDefintion.Definition).Distinct().ToArray()
-        };
-
-        // some lines haven't had the HTML italics converted to the []
-        //   transcribers used <i>ò</i> to denote the long o pronunciation in the html file, but [ò] for the same in the markdown
-        // weird case: [er] is not covered in transcription notes.
-        //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
-        //   - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
-        // these have been fixed in PG as of 2024-05-30
-        static string CleanInconsistencies(string word) => word
-            .Replace("<i>", "[", StringComparison.Ordinal).Replace("</i>", "]", StringComparison.Ordinal)
-            .Replace("[er]", "er", StringComparison.Ordinal);
-    }
 
     // TODO: consider adding the word matching to the previous definition as a referenced word?
     //       - might be very difficult/impossible as WordDefinition is immutable, and
@@ -276,7 +301,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                     .Replace("._._", "._", StringComparison.OrdinalIgnoreCase),
                 ReferencedWords = previousDefinition.ReferencedWords is null
                     ? [previousDefinition.Word]
-                    : Enumerable.Union(previousDefinition.ReferencedWords, [previousDefinition.Word]).ToArray()
+                    : [previousDefinition.Word, .. previousDefinition.ReferencedWords]
             };
         }
 
@@ -307,12 +332,55 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                 continue;
             }
 
-            //if (parts[i].IndexOf(',') > 0 && parts[i] is not [.., ','])
-            //{
-            //    Debugger.Break();
-            //}
+            string part = parts[i].Trim([',', '.']);
 
-            yield return parts[i]
+            if (part.Contains('}'))
+            {
+                foreach (var example in part.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    int endIndex = example.IndexOf('}');
+                    if (endIndex > 0)
+                    {
+                        yield return example[..endIndex].Trim([' ', '.']);
+                    }
+                }
+                continue;
+            }
+
+            if (part.IndexOf(',') > 0 &&
+                (part.Count(c => c == ' ') == part.Count(c => c == ',') ||
+                 part.StartsWith("Picchi[ó]ne", StringComparison.Ordinal)))
+            {
+                // these should all be cases where multiple examples are given.
+                // we can split by ',' and return them
+                // also split by '.' to split sentence examples
+
+                var examples = parts[i].Split([',', '.'],
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var example in examples)
+                {
+                    if (example.StartsWith("&c"))
+                    {
+                        continue;
+                    }
+                    yield return example.Trim([' ', ',', ':', ';', '.']).CapitaliseFirstLetter();
+                }
+
+                continue;
+            }
+
+            if (part.Contains('.') && part is not [.., '.'] &&
+                part.IndexOf(' ') > part.IndexOf('.'))
+            {
+                foreach (var example in part.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    yield return example.Trim([' ', ',']);
+                }
+                continue;
+            }
+
+            yield return part
                 .Replace("&c", "", StringComparison.OrdinalIgnoreCase)
                 .Trim([' ', ',', ':', ';', '.']);
         }
@@ -392,20 +460,29 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                     if (wordWithVariations.StartsWith("S[o]pra", StringComparison.InvariantCulture))
                     {
                         var withoutSopra = wordWithVariations.Replace("s[o]pra", "", StringComparison.InvariantCultureIgnoreCase);
-                        var newVariants = GetVariations(withoutSopra);
-                        return newVariants.Select(w => $"S[o]pra{w.ToLowerInvariant().Trim('a')}");
+                        return GetVariations(withoutSopra)
+                            .Select(adjustedVariant =>
+                            {
+                                var startOfVariant = wordWithVariations.IndexOf(adjustedVariant, StringComparison.InvariantCultureIgnoreCase);
+                                var correctedCasing = startOfVariant >= 0
+                                    ? wordWithVariations.Substring(startOfVariant, adjustedVariant.Length)
+                                    // handle 'u' => 'V' case change in adjustedVariant
+                                    : tokens.First(s => string.Equals(adjustedVariant, s.CapitaliseFirstLetter(), StringComparison.InvariantCultureIgnoreCase));
+                                return $"S[o]pra{correctedCasing.Trim('a')}";
+                            });
                     }
 
-                    return tokens.Select(w =>
-                    {
-                        // if starts with "u", change to "V"
-                        // don't need to worry about diacritics (eg. 'Ú') here because no cases hit this branch
-                        var firstLetter = char.ToUpperInvariant(w[0] == 'U'
-                            ? 'V'
-                            : w[0]);
+                    return tokens.Select(w => w.CapitaliseFirstLetter());
+                    //return tokens.Select(w =>
+                    //{
+                    //    // if starts with "u", change to "V"
+                    //    // shouldn't be any cases with diacritics (eg. 'Ú') that hit this branch
+                    //    var firstLetter = char.ToUpperInvariant(w[0] == 'U'
+                    //        ? 'V'
+                    //        : w[0]);
 
-                        return $"{firstLetter}{w[1..]}";
-                    });
+                    //    return $"{firstLetter}{w[1..]}";
+                    //});
                 }
                 if (startOfRange == 0)
                 {

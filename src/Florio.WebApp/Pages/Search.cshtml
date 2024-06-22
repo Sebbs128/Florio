@@ -7,6 +7,10 @@
         : $"""Search results for "{Model.Term}" """;
 }
 
+<h1 class="fs-1">
+    @ViewData["Title"]
+</h1>
+
 <partial name="_SearchBar" model="new SearchBarModel { IsInNavBar = false, CurrentSearch = Model.Term }" />
 
 @if (await Model.Results.AnyAsync())
@@ -16,12 +20,12 @@
         {
             <li class="list-group-item">
                 <span class="fs-5">
-                    <a asp-page="Italian" asp-route-word="@(stringFormatter.ToPrintableNormalizedString(result.Word))">
+                    <a class="fw-light" asp-page="Italian" asp-route-word="@(stringFormatter.ToPrintableNormalizedString(result.Word))">
                         @result.Word.ToHtmlString()
                     </a>
                 </span>
                 <br />
-                <render referenced-words="@result.ReferencedWords">@result.Definition</render>
+                <render-definition word-definition="@result"></render-definition>
             </li>
         }
     </ul>

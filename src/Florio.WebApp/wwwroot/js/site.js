@@ -3,6 +3,12 @@
 
 // Write your JavaScript code.
 
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+    trigger: 'hover',
+    html: true
+}));
+
 let pendingAutocompleteRequest = null;
 
 function autocompleteSearch(target) {

@@ -16,7 +16,7 @@ public class GutenbergTextParserTests
     public void CanParseLineIntoDefinitionLine(string line, WordDefinition definition)
     {
         Assert.True(GutenbergTextParser.ContainsDefinition(line));
-        Assert.Equal(definition, GutenbergTextParser.GetDefinitionLine(line));
+        Assert.Equal(definition, GutenbergTextParser.ParseWordDefinition(line));
     }
 
     [Theory]
@@ -125,8 +125,8 @@ public class GutenbergTextParserTests
             {
                 "Audíre",
                 "Ód[o]",
-                "Udíj",
-                "Udít[o]",
+                "Vdíj",
+                "Vdít[o]",
             }
         },
         {
@@ -236,6 +236,22 @@ public class GutenbergTextParserTests
         {
             "_as_ Cauagliẻre, &c.",
             [ "Cauagliẻre" ]
+        },
+        {
+            "_a word vsed by_ Gris[ó]ni, fol. 62.",
+            [ "Gris[ó]ni, fol. 62" ]
+        },
+        {
+            "_a Mariners cabbin in a ship._ I cápi, i póli & le giáve.",
+            [ "I cápi, i póli & le giáve" ]
+        },
+        {
+            "_a mish-mash, a hodge-pot._ N[o]n paréva ne gríll[o], ne g[o]zzivái[o].",
+            [ "N[o]n paréva ne gríll[o], ne g[o]zzivái[o]" ]
+        },
+        {
+            "_a word much vsed in composition of other nounes to expresse littlenesse and prettinesse withall, as_ Librétt[o], Hométt[o], C[o]sétta, Casétta, &c.",
+            [ "Librétt[o]", "Hométt[o]", "C[o]sétta", "Casétta"]
         }
     };
 

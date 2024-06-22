@@ -482,4 +482,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-/src/.docker/qdrant
+
+# Repository specific
+*.onnx
+/src/.docker/
+/.localassets/
+/.notes/
