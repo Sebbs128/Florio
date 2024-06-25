@@ -5,6 +5,70 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="text-uppercase">
+        <span class="fs-2 fv-small-caps ls-2">Iohn Florio's</span><br />
+        <span class="fs-1">Old Word</span><br />
+        <span class="fs-2">of Words</span>
+    </h1>
+    <h2>
+        <span class="fs-5 fv-small-caps text-uppercase">Or</span><br />
+        <span class="fs-2 ls-2 text-uppercase">Dictionarie</span><br />
+        <span class="fs-3">
+            of the <em>Italian</em> and <em>English</em> tongues
+        </span>
+    </h2>
+</div>
+<div class="text-center">
+    <partial name="_SearchBar" model="new SearchBarModel { IsInNavBar = false }" />
+</div>
+<div class="text-start mt-5">
+    <p>
+        This braine-babe (pardon me for the homage) is a modernization of <em>Queen Anna's New World of Words, or Dictionarie of the Italian and English tongues</em>,
+        collected and compiled by John Florio and published in 1611.
+        The dictionary contains about 75,000 definitions of Early Modern Italian words and phrases, and their Early Modern English counterparts.
+        It still remains a fantastic resource for translators today.
+    </p>
+    <p>
+        This modernization is in terms of technology only. The website makes the definitions easy to search and navigate,
+        however it leaves as much of the spelling and formatting as it was in the original sources and transcriptions.
+        In addition, it is not intending to reproduce the entirety of Florio's dictionary;
+        notes and the additional pages covering grammar and pronunciation are not included,
+        so I encourage you to peruse one or all of the digital sources listed in the credits below.
+    </p>
+    <p>
+        Details on how I produced this modernization are available on the <a asp-page="/About">About page,</a>
+        and all source code for the site and producing the vector model and database is published on <a href="https://github.com/Sebbs128/Florio">GitHub</a>.
+    </p>
+</div>
+
+<div class="text-start m-5">
+    <p>
+        <span class="fw-bold">Credits:</span>
+        <ul class="list-unstyled">
+            <li>
+                Greg Lindahl hosts images and a PDF scanned from a facsimile of Florio's dictionary at <a href="https://www.pbm.com/~lindahl/florio/">https://www.pbm.com/~lindahl/florio/</a>.
+                <ul>
+                    <li>
+                        Greg Lindahl further credits Steve Bush for scanning those images from the 1968 Scholar Press facsimile.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="https://www.gutenberg.org/">Project Gutenberg</a> hosts a transcription of Florio's dictionary in a variety of formats at <a href="https://www.gutenberg.org/ebooks/56200">https://www.gutenberg.org/ebooks/56200</a>.
+                <ul>
+                    <li>
+                        Project Gutenberg electronic works are covered by The Project Gutenberg License, available online at <a href="https://www.gutenberg.org/license">https://www.gutenberg.org/license</a>.
+                    </li>
+                    <li>
+                        Project Gutenberg credits production of their transcriptions to Greg Lindahl, Steve Bush, Barbara Magni and the Online Distributed Proofreading Team at (http://www.pgdp.net).
+                    </li>
+                    <li>
+                        Please also consider <a href="https://www.gutenberg.org/donate/">donating to Project Gutenberg</a>, which will support their work and allow them to obtain even more content.
+                    </li>
+                </ul>
+
+            </li>
+        </ul>
+    </p>
+
 </div>

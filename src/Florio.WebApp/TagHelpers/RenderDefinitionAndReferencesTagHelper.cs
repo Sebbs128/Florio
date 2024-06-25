@@ -39,6 +39,12 @@ public class RenderDefinitionAndReferencesTagHelper(
 
         output.TagName = "span";
 
+        if (WordDefinition.Definition.Contains('}'))
+        {
+            await WriteDefinitionWithTable(urlHelper, output);
+            return;
+        }
+
         var splitDefinition = WordDefinition.Definition
             .Split('_', StringSplitOptions.RemoveEmptyEntries)
             .Select((s, i) => (Text: s, Index: i));
@@ -86,10 +92,65 @@ public class RenderDefinitionAndReferencesTagHelper(
         }
     }
 
+    private async Task WriteDefinitionWithTable(IUrlHelper urlHelper, TagHelperOutput output)
+    {
+        var endDefinition = WordDefinition.Definition.IndexOf('_', 1);
+        WriteDefinitionText(WordDefinition.Definition[1..endDefinition], output);
+
+        var lines = WordDefinition.Definition[(endDefinition + 1)..]
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(line => !string.Equals(line, "}", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        var rightContent = string.Join(string.Empty, lines.Select(line => line[(line.IndexOf('}') + 1)..])).Trim([' ', '_']);
+
+        var table = new TagBuilder("table");
+        var tbody = new TagBuilder("tbody");
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            var tr = new TagBuilder("tr");
+
+            var td = new TagBuilder("td");
+            td.AddCssClass("text-nowrap");
+            var refWord = WordDefinition.ReferencedWords!.Single(line.StartsWith);
+            td.InnerHtml.AppendHtml(await BuildReferenceLink(refWord, urlHelper));
+            td.InnerHtml.Append(line[refWord.Length..line.IndexOf('}')]);
+
+            tr.InnerHtml.AppendHtml(td);
+
+            if (i == 0)
+            {
+                var middleTd = new TagBuilder("td");
+                middleTd.MergeAttribute("rowspan", lines.Length.ToString());
+
+                var rightBraceImg = new TagBuilder("img");
+                rightBraceImg.MergeAttribute("src", urlHelper.Content("~/images/right-brace.png"));
+
+                middleTd.InnerHtml.AppendHtml(rightBraceImg);
+                tr.InnerHtml.AppendHtml(middleTd);
+
+                var rightTd = new TagBuilder("td");
+                rightTd.MergeAttribute("rowspan", lines.Length.ToString());
+                rightTd.AddCssClass("align-middle");
+
+                var italics = new TagBuilder("em");
+                WriteIntoTagBuilder(rightContent, italics);
+                rightTd.InnerHtml.AppendHtml(italics);
+                tr.InnerHtml.AppendHtml(rightTd);
+            }
+
+            tbody.InnerHtml.AppendHtml(tr);
+        }
+        table.InnerHtml.AppendHtml(tbody);
+        output.Content.AppendHtml(table);
+    }
+
     private static void WriteDefinitionText(string text, TagHelperOutput output)
     {
-        var italics = new TagBuilder("i");
-        italics.InnerHtml.Append(text);
+        var italics = new TagBuilder("em");
+
+        WriteIntoTagBuilder(text, italics);
 
         output.Content.AppendHtml(italics);
     }
@@ -98,8 +159,14 @@ public class RenderDefinitionAndReferencesTagHelper(
     {
         output.Content.AppendHtml(text[..startIndex].Replace("\r\n", "<br />"));
 
+        var linkTag = await BuildReferenceLink(referencedWord, urlHelper);
+
+        output.Content.AppendHtml(linkTag);
+    }
+
+    private async Task<TagBuilder> BuildReferenceLink(string referencedWord, IUrlHelper urlHelper)
+    {
         var linkTag = new TagBuilder("a");
-        linkTag.AddCssClass("fw-light");
 
         var normalised = _stringFormatter.ToPrintableNormalizedString(referencedWord);
         var vector = _embeddingsModel.CalculateVector(normalised);
@@ -118,9 +185,8 @@ public class RenderDefinitionAndReferencesTagHelper(
             linkTag.MergeAttribute("href", urlHelper.Page("Search", new { Term = normalised }));
         }
 
-        linkTag.InnerHtml.AppendHtml(referencedWord.ToHtmlString());
-
-        output.Content.AppendHtml(linkTag);
+        WriteIntoTagBuilder(referencedWord.ToHtmlString().Value!, linkTag);
+        return linkTag;
     }
 
     private static async Task<string> BuildPopoverContent(IAsyncEnumerable<WordDefinition> matches)
@@ -154,5 +220,24 @@ public class RenderDefinitionAndReferencesTagHelper(
         }
 
         return content.ToString();
+    }
+
+    private static void WriteIntoTagBuilder(string text, TagBuilder tagBuilder)
+    {
+
+        int startSuperscript;
+        while ((startSuperscript = text.IndexOf('^')) != -1)
+        {
+            tagBuilder.InnerHtml.AppendHtml(text[..startSuperscript]);
+
+            var endSuperscript = text.IndexOfAny([' ', ',', '.'], startSuperscript);
+            var superscript = new TagBuilder("sup");
+            superscript.InnerHtml.Append(text[(startSuperscript + 1)..endSuperscript]);
+
+            tagBuilder.InnerHtml.AppendHtml(superscript);
+            text = text[endSuperscript..];
+        }
+
+        tagBuilder.InnerHtml.AppendHtml(text);
     }
 }

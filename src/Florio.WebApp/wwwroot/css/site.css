@@ -19,10 +19,13 @@ html {
 
 body {
   margin-bottom: 60px;
+  font-family:'Times New Roman', Times, serif;
 }
 
 a {
     color: var(--bs-dark);
+}
+span > a {
     text-decoration: none;
 }
 a:hover {
@@ -31,4 +34,26 @@ a:hover {
 
 .dropdown-menu {
     width: 100%;
+}
+
+span > :not(em) {
+    font-weight: lighter;
+}
+
+td > img {
+    object-fit: fill;
+    height: 100%;
+    width: 35px;
+    opacity: 75%;
+}
+
+.fv-small-caps {
+    font-variant: small-caps;
+}
+
+.ls-1 {
+    letter-spacing: 0.1em;
+}
+.ls-2 {
+    letter-spacing: 0.2em;
 }

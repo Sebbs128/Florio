@@ -1,15 +1,12 @@
 ﻿@model Florio.WebApp.Models.SearchBarModel
 
 @{
-    var autocompleteInputId = Model.IsInNavBar
-        ? "navBarSearchBox"
-        : "searchPageSearchBox";
-    var autocompleteResultsId = Model.IsInNavBar
-        ? "navBarAutoCompleteResults"
-        : "searchPageAutoCompleteResults";
-    var buttonContent = Model.IsInNavBar
-        ? """<i class="bi bi-search"></i>"""
-        : "Search";
+    var (searchButtonId, buttonContent) = Model.IsInNavBar
+        ? ("navBarSearch", """<i class="bi bi-search"></i>""")
+        : ("searchPageSearch", "Search");
+    var(autocompleteInputId, autocompleteResultsId) = Model.IsInNavBar
+        ? ("navBarSearchBox", "navBarAutoCompleteResults")
+        : ("searchPageSearchBox", "searchPageAutoCompleteResults");
 }
 
 <form asp-page="Search" method="get" role="search">
@@ -20,7 +17,7 @@
                    placeholder="Search" list="inlineSearch" autocomplete="off" aria-label="Search"
                    data-bs-toggle="dropdown" data-bs-auto-close="inside" aria-expanded="false"
                    data-results-target="@($"#{autocompleteResultsId}")" onkeyup="autocompleteSearch(this);" />
-            <button type="submit" class="btn btn-outline-secondary" id="searchButton">@Html.Raw(buttonContent)</button>
+            <button title="Search" type="submit" class="btn btn-outline-secondary" id="@searchButtonId">@Html.Raw(buttonContent)</button>
         </div>
         <ul id="@autocompleteResultsId" class="dropdown-menu" aria-labelledby="@(autocompleteInputId)"></ul>
     </div>

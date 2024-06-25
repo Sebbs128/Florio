@@ -1,8 +1,11 @@
 ﻿@page "{word?}"
 @model Florio.WebApp.Pages.ItalianModel
+
+@inject Florio.Data.IStringFormatter stringFormatter
+
 @{
     var word = (await Model.WordDefinition.FirstAsync()).Word;
-    ViewData["Title"] = word;
+    ViewData["Title"] = stringFormatter.ToPrintableString(word);
 }
 
 <h1 class="fs-1 fw-light">

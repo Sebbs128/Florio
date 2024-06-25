@@ -20,7 +20,7 @@ function autocompleteSearch(target) {
             pendingAutocompleteRequest.abort();
         }
         pendingAutocompleteRequest = $.get(
-            '_Autocomplete',
+            '/_Autocomplete',
             { Search: query },
             function (data) {
                 if (query == $(target).val()) {

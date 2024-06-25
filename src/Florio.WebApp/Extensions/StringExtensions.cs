@@ -6,6 +6,6 @@ public static class StringExtensions
 {
     public static HtmlString ToHtmlString(this string input) =>
         new(input
-            .Replace("[", "<i>")
-            .Replace("]", "</i>"));
+            .Replace("[", "<em>")
+            .Replace("]", "</em>"));
 }

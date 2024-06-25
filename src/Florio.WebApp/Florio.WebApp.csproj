@@ -22,6 +22,13 @@
     <ItemGroup>
       <Folder Include="Pages\Shared\Components\" />
       <Folder Include="ViewComponents\" />
+      <Folder Include="wwwroot\images\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="wwwroot\images\right-brance.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
