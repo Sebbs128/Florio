@@ -3,15 +3,25 @@
 A .NET project to read, parse, and export John Florio's 1611 Italian-English Dictionary.
 
 My goal with this project is to provide a translation tool for early modern Italian to early modern English.
-I plan to have this repo contain the code for a website, backed by a vector database containing the dictionary, and the tooling to allow anyone to clone the repo and run.
+Within this repo you will find the code for a website backed by a vector database containing the dictionary, and the tooling to allow anyone to clone the repo and run the site.
 
-Right now it is a work in progress. Current functionality includes:
+Notable executables within the repo:
 
-- downloading and parsing most of the dictionary entries from Project Gutenberg's "Plain Vanilla ASCII" format.
-  - (there are still some edge cases to work out in the parsing)
-- analysing the parsed text to identify the longest word, longest definition, and set of characters in "normalised" words
-- exporting to a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
-- exporting an ONNX (.onnx) file containing a vector embeddings model fitted from the normalised words as trigrams, and testing looking up words from an in-memory vector database.
+- Florio.WebApp
+  - an ASP.NET Core website, giving the ability to search a vector database for Italian words contained in Florio's dictionary
+- Florio.AppHost
+  - a .NET Aspire application host which handles orchestrating a Qdrant vector database along with the Florio.WebApp site
+- Florio.Gutenberg.ConsoleTest
+  - downloads and parses most of the dictionary entries from Project Gutenberg's "Plain Text UTF-8" e-book
+  - analyses the parsed text to identify some features
+    - the longest word, 
+    - the longest definition, 
+    - set of characters in "normalised" words that will be used for tri-gram vectors,
+    - any issues with word variations (often grammatical conjugations) that should be addressed in the parser
+- Florio.Gutenberg.Exporter.Excel
+  - exports the parsed e-book as a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
+- Florio.Gutenberg.VectorTesting
+  - exports an ONNX (.onnx) file containing a vector embeddings model fitted from the normalised words as tri-grams, and tests looking up words from an in-memory vector database.
 
 ## Credits and Sources
 
