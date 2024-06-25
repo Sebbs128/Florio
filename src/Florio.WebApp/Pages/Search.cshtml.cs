@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Florio.WebApp.Pages;
 
+[ResponseCache(VaryByQueryKeys = [nameof(Term)])]
 public class SearchModel(
     IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,

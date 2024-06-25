@@ -1,6 +1,9 @@
+using System.Threading.RateLimiting;
+
 using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Qdrant;
 using Florio.WebApp.HealthChecks;
+using Florio.WebApp.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,40 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddRazorPages();
 
+builder.Services.Configure<RateLimitSettings>(
+    builder.Configuration.GetSection(nameof(RateLimitSettings)));
+
+var rateLimitSettings = new RateLimitSettings();
+builder.Configuration.GetSection(nameof(RateLimitSettings)).Bind(rateLimitSettings);
+
+builder.Services.AddRateLimiter(limiterOptions =>
+    limiterOptions.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+
+        return RateLimitPartition.GetFixedWindowLimiter(userAgent, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = rateLimitSettings.PermitLimit,
+                Window = TimeSpan.FromSeconds(rateLimitSettings.WindowSeconds),
+                QueueProcessingOrder = rateLimitSettings.QueueProcessingOrder,
+                QueueLimit = rateLimitSettings.QueueLimit,
+            }
+        );
+    }));
+
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
+});
+builder.Services.AddResponseCaching();
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,12 +63,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// TODO: add rate limiting
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseResponseCaching();
+app.UseResponseCompression();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthorization();
 
