@@ -21,6 +21,9 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav">
                         <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/About">About</a>
                         </li>
                     </ul>
@@ -32,14 +35,16 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @(DateTime.Today.Year) - Wayne Sebbens
+        <div class="container mt-2">
+            <a class="icon-link" href="https://github.com/Sebbs128/Florio">
+                View the code on GitHub <i class="bi bi-github" aria-hidden="true"></i>
+            </a>
             <partial name="_License" />
         </div>
     </footer>

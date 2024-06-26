@@ -18,7 +18,6 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
   font-family:'Times New Roman', Times, serif;
 }
 
@@ -30,6 +29,9 @@ span > a {
 }
 a:hover {
     text-decoration: underline;
+}
+.icon-link {
+    text-decoration-color: var(--bs-dark);
 }
 
 .dropdown-menu {
@@ -56,4 +58,26 @@ td > img {
 }
 .ls-2 {
     letter-spacing: 0.2em;
+}
+
+main {
+    padding-bottom: 21rem !important;
+}
+
+@media (min-width: 576px) {
+    main {
+        padding-bottom: 15rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    main {
+        padding-bottom: 15rem !important;
+    }
+}
+
+@media (min-width: 992px) {
+    main {
+        padding-bottom: 12rem !important;
+    }
 }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Florio.WebApp.Pages;
 
-[ResponseCache(VaryByQueryKeys = [nameof(Search)])]
+[ResponseCache(VaryByQueryKeys = [nameof(Search)], Duration = 300)]
 public class AutocompleteModel(
     IVectorEmbeddingModelFactory embeddingsModel,
     IWordDefinitionRepository repository,
