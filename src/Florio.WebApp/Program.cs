@@ -7,6 +7,8 @@ using Florio.WebApp.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Add services to the container.
 builder.AddServiceDefaults();
 
@@ -18,6 +20,8 @@ builder.Services.AddHealthChecks()
     .AddCheck<VectorDatabaseHealthCheck>("Vector Database", tags: ["live"]);
 
 builder.Services.AddRazorPages();
+
+builder.Services.AddCors();
 
 builder.Services.Configure<RateLimitSettings>(
     builder.Configuration.GetSection(nameof(RateLimitSettings)));
@@ -64,11 +68,41 @@ if (!app.Environment.IsDevelopment())
     app.UseResponseCompression();
 }
 
+app.UseSecurityHeaders(options =>
+{
+    options.AddDefaultSecurityHeaders();
+
+    options.AddContentSecurityPolicy(builder =>
+    {
+        builder.AddStyleSrcElem()
+            .Self()
+            .From("https://cdn.jsdelivr.net");
+        builder.AddScriptSrcElem()
+            .Self()
+            .From("https://cdn.jsdelivr.net");
+        builder.AddFontSrc()
+            .From("https://cdn.jsdelivr.net");
+
+        if (app.Environment.IsDevelopment())
+        {
+            // allow BrowserLink
+            builder.AddDefaultSrc()
+                    .UnsafeInline()
+                    .From("http://localhost:*")
+                    .From("ws://localhost:*");
+            builder.AddScriptSrc()
+                    .UnsafeInline()
+                    .From("http://localhost:*");
+        }
+    });
+});
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseResponseCaching();
 
 app.UseRouting();
+app.UseCors();
 app.UseRateLimiter();
 
 app.UseAuthorization();

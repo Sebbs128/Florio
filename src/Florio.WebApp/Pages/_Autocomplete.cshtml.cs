@@ -2,11 +2,13 @@ using Florio.Data;
 using Florio.VectorEmbeddings.EmbeddingsModel;
 using Florio.VectorEmbeddings.Repositories;
 
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Florio.WebApp.Pages;
 
+[EnableCors]
 [ResponseCache(VaryByQueryKeys = [nameof(Search)], Duration = 300)]
 public class AutocompleteModel(
     IVectorEmbeddingModelFactory embeddingsModel,

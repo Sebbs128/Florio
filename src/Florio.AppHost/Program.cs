@@ -4,6 +4,7 @@ var qdrant = builder.AddQdrant("qdrant")
     .WithDataVolume();
 
 builder.AddProject<Projects.Florio_WebApp>("webApp")
-    .WithReference(qdrant);
+    .WithReference(qdrant)
+    .WithExternalHttpEndpoints();
 
 builder.Build().Run();
