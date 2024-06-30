@@ -79,9 +79,16 @@ internal class EmbeddingsInitializerService(
                 await _repository.CreateCollection(records.First().Vector.Length, cancellationToken);
             }
 
-            await _repository.InsertBatch(records, cancellationToken);
+            try
+            {
+                await _repository.InsertBatch(records, cancellationToken);
 
-            _logger.LogInformation("Vector database populated.");
+                _logger.LogInformation("Vector database populated.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to populate vector database.");
+            }
         }
     }
 

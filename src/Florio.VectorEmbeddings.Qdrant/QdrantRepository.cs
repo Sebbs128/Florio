@@ -8,6 +8,8 @@ using Google.Protobuf.Collections;
 
 using Grpc.Core;
 
+using Microsoft.Extensions.Logging;
+
 using Polly;
 
 using Qdrant.Client;
@@ -15,10 +17,11 @@ using Qdrant.Client.Grpc;
 
 namespace Florio.VectorEmbeddings.Qdrant;
 
-public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings settings) : IWordDefinitionRepository
+public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings settings, ILogger<QdrantRepository> logger) : IWordDefinitionRepository
 {
     private readonly QdrantClient _qdrantClient = qdrantClient;
     private readonly EmbeddingsSettings _settings = settings;
+    private readonly ILogger<QdrantRepository> _logger = logger;
 
     private static readonly TimeSpan _delay = TimeSpan.FromSeconds(10);
 
@@ -26,7 +29,7 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         .AddRetry(new Polly.Retry.RetryStrategyOptions
         {
             Delay = TimeSpan.FromSeconds(10),
-            ShouldHandle = new PredicateBuilder().Handle<RpcException>(),
+            ShouldHandle = new PredicateBuilder().Handle<RpcException>(rpcException => rpcException.StatusCode == StatusCode.Unavailable),
             MaxRetryAttempts = 10
         })
         .Build();
@@ -34,6 +37,8 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         .AddRetry(new Polly.Retry.RetryStrategyOptions
         {
             Delay = TimeSpan.FromSeconds(1),
+            MaxDelay = TimeSpan.FromSeconds(10),
+            MaxRetryAttempts = 5,
             UseJitter = true
         })
         .Build();
@@ -49,8 +54,15 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         // during startup, Qdrant may take a moment to load the collection from disk
         return await _collectionExistsStartupPipeline.ExecuteAsync(async cancelToken =>
         {
-            var info = await _qdrantClient.GetCollectionInfoAsync(_settings.CollectionName, cancelToken);
-            return info.Status == CollectionStatus.Green && info.HasIndexedVectorsCount;
+            try
+            {
+                var info = await _qdrantClient.GetCollectionInfoAsync(_settings.CollectionName, cancelToken);
+                return info.Status == CollectionStatus.Green && info.HasIndexedVectorsCount;
+            }
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.NotFound)
+            {
+                return false;
+            }
         }, cancellationToken);
     }
 
@@ -182,14 +194,16 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
 
         for (int i = 0; i < records.Count; i += batchSize)
         {
+            var toAdd = records.Skip(i).Take(batchSize).ToList();
             await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
             {
                 var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName,
-                    records.Skip(i).Take(batchSize).ToList(),
+                    toAdd,
                     wait: true,
                     cancellationToken: cancelToken);
                 Debug.Assert(updateResult.Status == UpdateStatus.Completed);
             }, cancellationToken);
+            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", i + toAdd.Count, records.Count);
         }
     }
 }
