@@ -5,9 +5,11 @@ using Florio.WebApp.Binders;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace Florio.WebApp.Pages;
 
+[OutputCache(VaryByQueryKeys = [nameof(Term)], Duration = 300)]
 [ResponseCache(VaryByQueryKeys = [nameof(Term)], Duration = 300)]
 public class SearchModel(
     IVectorEmbeddingModelFactory embeddingsModelFactory,

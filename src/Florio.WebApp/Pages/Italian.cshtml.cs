@@ -5,9 +5,11 @@ using Florio.WebApp.Binders;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace Florio.WebApp.Pages;
 
+[OutputCache(VaryByRouteValueNames = [nameof(Word)], Duration = 300)]
 public class ItalianModel(
     IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,
