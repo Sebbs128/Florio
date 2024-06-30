@@ -17,7 +17,7 @@ builder.Services.AddVectorEmbeddings<QdrantRepository>();
 
 builder.AddQdrantClient("qdrant");
 builder.Services.AddHealthChecks()
-    .AddCheck<VectorDatabaseHealthCheck>("Vector Database", tags: ["live"]);
+    .AddCheck<VectorDatabaseHealthCheck>("Vector Database");
 
 builder.Services.AddRazorPages();
 
