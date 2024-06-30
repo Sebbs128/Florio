@@ -1,6 +1,6 @@
 ﻿using Florio.Data;
 
-namespace Florio.Gutenberg.Parser;
+namespace Florio.Parsers.Gutenberg;
 public class StringFormatter : IStringFormatter
 {
     /// <summary>

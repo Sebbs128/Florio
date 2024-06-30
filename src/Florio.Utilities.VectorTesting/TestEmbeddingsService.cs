@@ -4,7 +4,7 @@ using Florio.VectorEmbeddings.Repositories;
 
 using Microsoft.Extensions.Hosting;
 
-namespace Florio.Gutenberg.VectorTesting;
+namespace Florio.Utilities.VectorTesting;
 internal class TestEmbeddingsService(
     IWordDefinitionRepository repository,
     IVectorEmbeddingModelFactory vectorEmbeddingModelFactory,

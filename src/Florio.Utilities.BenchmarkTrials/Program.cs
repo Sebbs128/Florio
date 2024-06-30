@@ -1,6 +1,8 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
+using Florio.Utilities.BenchmarkTrials;
+
 namespace Florio.Gutenberg.BenchmarkTrials
 {
     public class Program

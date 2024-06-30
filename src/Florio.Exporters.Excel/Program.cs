@@ -3,7 +3,7 @@
 using ClosedXML.Excel;
 
 using Florio.Data;
-using Florio.Gutenberg.Parser;
+using Florio.Parsers.Gutenberg;
 
 using Microsoft.Extensions.DependencyInjection;
 

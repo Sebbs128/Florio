@@ -11,16 +11,16 @@ Notable executables within the repo:
   - an ASP.NET Core website, giving the ability to search a vector database for Italian words contained in Florio's dictionary
 - Florio.AppHost
   - a .NET Aspire application host which handles orchestrating a Qdrant vector database along with the Florio.WebApp site
-- Florio.Gutenberg.ConsoleTest
+- Florio.Exporters.Excel
+  - exports the parsed e-book as a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
+- Florio.Utilities.ConsoleTest
   - downloads and parses most of the dictionary entries from Project Gutenberg's "Plain Text UTF-8" e-book
   - analyses the parsed text to identify some features
-    - the longest word, 
-    - the longest definition, 
+    - the longest word,
+    - the longest definition,
     - set of characters in "normalised" words that will be used for tri-gram vectors,
     - any issues with word variations (often grammatical conjugations) that should be addressed in the parser
-- Florio.Gutenberg.Exporter.Excel
-  - exports the parsed e-book as a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
-- Florio.Gutenberg.VectorTesting
+- Florio.Utilities.VectorTesting
   - exports an ONNX (.onnx) file containing a vector embeddings model fitted from the normalised words as tri-grams, and tests looking up words from an in-memory vector database.
 
 ## Credits and Sources

@@ -1,4 +1,4 @@
-﻿namespace Florio.Gutenberg.Parser.Extensions;
+﻿namespace Florio.Parsers.Gutenberg.Extensions;
 internal static class StringExtensions
 {
     public static string CapitaliseFirstLetter(this string str) =>

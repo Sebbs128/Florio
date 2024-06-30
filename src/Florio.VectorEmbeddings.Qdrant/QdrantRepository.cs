@@ -23,8 +23,6 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
     private readonly EmbeddingsSettings _settings = settings;
     private readonly ILogger<QdrantRepository> _logger = logger;
 
-    private static readonly TimeSpan _delay = TimeSpan.FromSeconds(10);
-
     private static readonly ResiliencePipeline _collectionExistsStartupPipeline = new ResiliencePipelineBuilder()
         .AddRetry(new Polly.Retry.RetryStrategyOptions
         {

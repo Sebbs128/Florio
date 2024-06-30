@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Florio.Gutenberg.Parser.Tests" />
+		<InternalsVisibleTo Include="Florio.Parsers.Gutenberg.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

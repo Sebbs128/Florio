@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Florio.Gutenberg.Parser\Florio.Gutenberg.Parser.csproj" />
+        <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
         <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
         <ProjectReference Include="..\Florio.ServiceDefaults\Florio.ServiceDefaults.csproj" />
         <ProjectReference Include="..\Florio.VectorEmbeddings.Qdrant\Florio.VectorEmbeddings.Qdrant.csproj" />

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using Florio.Data;
-using Florio.Gutenberg.Parser;
+using Florio.Parsers.Gutenberg;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

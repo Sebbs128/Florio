@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-using Florio.Gutenberg.VectorTesting;
+using Florio.Utilities.VectorTesting;
 using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.SKInMemory;
 

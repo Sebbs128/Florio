@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Florio.Gutenberg.Parser\Florio.Gutenberg.Parser.csproj" />
+    <ProjectReference Include="..\..\src\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
   </ItemGroup>
 
   <ItemGroup>

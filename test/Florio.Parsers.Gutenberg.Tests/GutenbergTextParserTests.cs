@@ -1,6 +1,6 @@
 ﻿using Florio.Data;
 
-namespace Florio.Gutenberg.Parser.Tests;
+namespace Florio.Parsers.Gutenberg.Tests;
 
 public class GutenbergTextParserTests
 {

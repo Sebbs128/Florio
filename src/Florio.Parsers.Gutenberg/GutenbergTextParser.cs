@@ -2,9 +2,9 @@
 using System.Text;
 
 using Florio.Data;
-using Florio.Gutenberg.Parser.Extensions;
+using Florio.Parsers.Gutenberg.Extensions;
 
-namespace Florio.Gutenberg.Parser;
+namespace Florio.Parsers.Gutenberg;
 
 public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDefinitionParser
 {
@@ -332,13 +332,13 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                 continue;
             }
 
-            string part = parts[i].Trim([',', '.']);
+            var part = parts[i].Trim([',', '.']);
 
             if (part.Contains('}'))
             {
                 foreach (var example in part.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    int endIndex = example.IndexOf('}');
+                    var endIndex = example.IndexOf('}');
                     if (endIndex > 0)
                     {
                         yield return example[..endIndex].Trim([' ', '.']);
