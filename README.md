@@ -13,6 +13,9 @@ Notable executables within the repo:
   - a .NET Aspire application host which handles orchestrating a Qdrant vector database along with the Florio.WebApp site
 - Florio.Exporters.Excel
   - exports the parsed e-book as a Microsoft Excel (.xlsx) file (mostly to assist in identifying parsing issues)
+- Florio.Exporters.Onnx
+  - exports an ONNX model for the vector embeddings of Italian words from the parsed e-book
+    - this .onnx file should be copied to the Embeddings/ModelFiles/ folder in Florio.Utilities.VectorTesting and Florio.WebApp before running them
 - Florio.Utilities.ConsoleTest
   - downloads and parses most of the dictionary entries from Project Gutenberg's "Plain Text UTF-8" e-book
   - analyses the parsed text to identify some features
@@ -21,7 +24,18 @@ Notable executables within the repo:
     - set of characters in "normalised" words that will be used for tri-gram vectors,
     - any issues with word variations (often grammatical conjugations) that should be addressed in the parser
 - Florio.Utilities.VectorTesting
-  - exports an ONNX (.onnx) file containing a vector embeddings model fitted from the normalised words as tri-grams, and tests looking up words from an in-memory vector database.
+  - tests looking up words from an in-memory vector database
+
+## Running the solution
+
+First, the vector embeddings model should be generated. This is done by running Florio.Exporters.Onnx, which will create a `word-embeddings.onnx` in that project folder.
+
+> Note: if you don't want to repeatedly hit Project Gutenberg's site, the .txt file can be downloaded and saved.
+> Projects will look for a .txt file named `pg56200.txt` in a `.localassets` by default (I recommend creating this directory in the root folder of the solution), but this path can be changed in the calls to `AddGutenbergDownloaderAndParser()`.
+
+The generated `word-embeddings.onnx` should be copied to the `Embeddings/ModelFiles/` folders in Florio.Utilities.VectorTesting and Florio.WebApp before running the VectorTesting utility, or the Florio.AppHost or WebApp projects.
+
+The solution uses .NET Aspire to ensure a Qdrant docker container is running and available for the WebApp. The recommended way to run the site is to start Florio.AppHost, which will ensure a Qdrant container is running.
 
 ## Credits and Sources
 

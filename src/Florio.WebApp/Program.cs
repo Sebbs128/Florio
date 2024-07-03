@@ -1,6 +1,5 @@
 using System.Threading.RateLimiting;
 
-using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Qdrant;
 using Florio.WebApp.HealthChecks;
 using Florio.WebApp.Settings;
@@ -11,13 +10,15 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 // Add services to the container.
 builder.AddServiceDefaults();
-
-builder.Services.AddGutenbergDownloaderAndParser();
-builder.Services.AddVectorEmbeddings<QdrantRepository>();
-
 builder.AddQdrantClient("qdrant");
+
+builder.Services
+    .AddGutenbergDownloaderAndParser() // required for IStringFormatter
+    .AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSettings:OnnxFilePath"]!)
+    .AddVectorEmbeddingsRepository<QdrantRepository>();
+
 builder.Services.AddHealthChecks()
-    .AddCheck<VectorDatabaseHealthCheck>("Vector Database");
+    .AddCheck<VectorDatabaseHealthCheck>("Vector Database", tags: ["ready"]);
 
 builder.Services.AddRazorPages();
 

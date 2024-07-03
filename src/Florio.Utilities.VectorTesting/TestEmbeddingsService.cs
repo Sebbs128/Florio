@@ -1,4 +1,5 @@
 ﻿using Florio.Data;
+using Florio.VectorEmbeddings;
 using Florio.VectorEmbeddings.EmbeddingsModel;
 using Florio.VectorEmbeddings.Repositories;
 
@@ -6,19 +7,28 @@ using Microsoft.Extensions.Hosting;
 
 namespace Florio.Utilities.VectorTesting;
 internal class TestEmbeddingsService(
+    VectorDbInitializer vectorDbInitializer,
     IWordDefinitionRepository repository,
     IVectorEmbeddingModelFactory vectorEmbeddingModelFactory,
     IStringFormatter stringFormatter,
-    IHostApplicationLifetime hostLifetime) : IHostedService
+    IHostApplicationLifetime hostLifetime)
+    : BackgroundService
 {
+    private readonly VectorDbInitializer _vectorDbInitializer = vectorDbInitializer;
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IVectorEmbeddingModelFactory _vectorEmbeddingModelFactory = vectorEmbeddingModelFactory;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
     private readonly IHostApplicationLifetime _hostLifetime = hostLifetime;
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var model = _vectorEmbeddingModelFactory.GetModel();
+
+        // wait for vector db initialization
+        while (!_vectorDbInitializer.VectorDbInitCompleted)
+        {
+            await Task.Delay(10, cancellationToken);
+        }
 
         string[] tests =
         [
@@ -40,9 +50,9 @@ internal class TestEmbeddingsService(
             var normalisedWord = _stringFormatter.ToPrintableNormalizedString(testWord);
             var results = _repository.FindClosestMatch(model.CalculateVector(normalisedWord), cancellationToken);
 
-            if (await results.AnyAsync())
+            if (await results.AnyAsync(cancellationToken))
             {
-                var bestMatch = await results.FirstAsync();
+                var bestMatch = await results.FirstAsync(cancellationToken);
                 Console.WriteLine($"Best match for \"{testWord}\" was \"{bestMatch.Word}\"");
                 await foreach (var match in results)
                 {
@@ -58,6 +68,4 @@ internal class TestEmbeddingsService(
 
         _hostLifetime.StopApplication();
     }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

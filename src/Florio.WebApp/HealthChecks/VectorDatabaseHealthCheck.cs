@@ -1,23 +1,34 @@
-﻿using Florio.VectorEmbeddings;
+﻿using Florio.VectorEmbeddings.EmbeddingsModel;
+using Florio.VectorEmbeddings.Repositories;
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-using Qdrant.Client;
-using Qdrant.Client.Grpc;
-
 namespace Florio.WebApp.HealthChecks;
 
-public class VectorDatabaseHealthCheck(QdrantClient qdrantClient, EmbeddingsSettings settings) : IHealthCheck
+public class VectorDatabaseHealthCheck(
+    IWordDefinitionRepository repository,
+    IVectorEmbeddingModelFactory embeddingsModelFactory) : IHealthCheck
 {
-    private readonly QdrantClient _qdrantClient = qdrantClient;
-    private readonly EmbeddingsSettings _settings = settings;
+    private readonly IWordDefinitionRepository _repository = repository;
+    private readonly IVectorEmbeddingModelFactory _embeddingsModelFactory = embeddingsModelFactory;
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        return await _qdrantClient.GetCollectionInfoAsync(_settings.CollectionName, cancellationToken) switch
+        if (await _repository.CollectionExists(cancellationToken))
         {
-            { Status: CollectionStatus.Green } => HealthCheckResult.Healthy("Vector Database ready."),
-            _ => HealthCheckResult.Unhealthy("Vector Database not ready.")
-        };
+            var model = _embeddingsModelFactory.GetModel();
+            var vectorA = model!.CalculateVector("a");
+            var vectorXistone = model!.CalculateVector("xistone");
+
+            var hasData = await _repository.FindClosestMatch(vectorA, cancellationToken).AnyAsync(cancellationToken)
+                && await _repository.FindClosestMatch(vectorXistone, cancellationToken).AnyAsync(cancellationToken);
+
+            if (hasData)
+            {
+                return HealthCheckResult.Healthy("Vector Database ready.");
+            }
+        }
+
+        return HealthCheckResult.Degraded("Vector Database not ready.");
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.OutputCaching;
 namespace Florio.WebApp.Pages;
 
 [OutputCache(VaryByQueryKeys = [nameof(Term)], Duration = 300)]
-[ResponseCache(VaryByQueryKeys = [nameof(Term)], Duration = 300)]
+[ResponseCache(VaryByQueryKeys = [nameof(Term)], Duration = 30 * 60)]
 public class SearchModel(
     IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,

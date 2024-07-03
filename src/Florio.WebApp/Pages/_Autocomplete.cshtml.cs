@@ -11,7 +11,7 @@ namespace Florio.WebApp.Pages;
 
 [EnableCors]
 [OutputCache(VaryByQueryKeys = [nameof(Search)], Duration = 300)]
-[ResponseCache(VaryByQueryKeys = [nameof(Search)], Duration = 300)]
+[ResponseCache(VaryByQueryKeys = [nameof(Search)], Duration = 30 * 60)]
 public class AutocompleteModel(
     IVectorEmbeddingModelFactory embeddingsModel,
     IWordDefinitionRepository repository,

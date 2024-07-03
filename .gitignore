@@ -485,6 +485,6 @@ $RECYCLE.BIN/
 
 # Repository specific
 *.onnx
-/src/.docker/
+!*/*.onnx/
 /.localassets/
 /.notes/

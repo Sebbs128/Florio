@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 using Florio.Data;
@@ -17,7 +18,11 @@ using Qdrant.Client.Grpc;
 
 namespace Florio.VectorEmbeddings.Qdrant;
 
-public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings settings, ILogger<QdrantRepository> logger) : IWordDefinitionRepository
+public sealed class QdrantRepository(
+    QdrantClient qdrantClient,
+    EmbeddingsSettings settings,
+    ILogger<QdrantRepository> logger)
+    : IWordDefinitionRepository
 {
     private readonly QdrantClient _qdrantClient = qdrantClient;
     private readonly EmbeddingsSettings _settings = settings;
@@ -36,7 +41,7 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         {
             Delay = TimeSpan.FromSeconds(1),
             MaxDelay = TimeSpan.FromSeconds(10),
-            MaxRetryAttempts = 5,
+            MaxRetryAttempts = 10,
             UseJitter = true
         })
         .Build();
@@ -174,25 +179,26 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
         IReadOnlyList<WordDefinitionEmbedding> values,
         CancellationToken cancellationToken = default)
     {
-        const int batchSize = 5_000;
+        const int batchSize = 2_000; // most useful for controlling amount of memory consumed while inserting to vector db
 
-        var records = values
-            .Select((v, i) => new PointStruct
-            {
-                Id = (ulong)i,
-                Vectors = v.Vector.ToArray(),
-                Payload =
-                {
-                    [nameof(WordDefinition.Word)] = v.WordDefinition.Word,
-                    [nameof(WordDefinition.Definition)] = v.WordDefinition.Definition,
-                    [nameof(WordDefinition.ReferencedWords)] = v.WordDefinition.ReferencedWords ?? []
-                }
-            })
-            .ToList();
-
-        for (int i = 0; i < records.Count; i += batchSize)
+        int itemsCount = 1;
+        for (var batch = 0; batch < values.Count; batch += batchSize)
         {
-            var toAdd = records.Skip(i).Take(batchSize).ToList();
+            var toAdd = values
+                .Skip(batch)
+                .Take(batchSize)
+                .Select(v => new PointStruct()
+                {
+                    Id = (ulong)itemsCount++,
+                    Vectors = v.Vector.ToArray(),
+                    Payload =
+                    {
+                        [nameof(WordDefinition.Word)] = v.WordDefinition.Word,
+                        [nameof(WordDefinition.Definition)] = v.WordDefinition.Definition,
+                        [nameof(WordDefinition.ReferencedWords)] = v.WordDefinition.ReferencedWords ?? []
+                    }
+                })
+                .ToArray();
             await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
             {
                 var updateResult = await _qdrantClient.UpsertAsync(_settings.CollectionName,
@@ -201,7 +207,11 @@ public class QdrantRepository(QdrantClient qdrantClient, EmbeddingsSettings sett
                     cancellationToken: cancelToken);
                 Debug.Assert(updateResult.Status == UpdateStatus.Completed);
             }, cancellationToken);
-            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", i + toAdd.Count, records.Count);
+            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount - 1, values.Count);
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+
+            GC.Collect();
         }
     }
 }

@@ -13,7 +13,9 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services
     .AddGutenbergDownloaderAndParser(@".localassets\pg56200.txt")
-    .AddVectorEmbeddings<SemanticKernelMemoryRepository>()
+    .AddVectorEmbeddingsModel("Embeddings/ModelFiles/word-embeddings.onnx")
+    .AddVectorEmbeddingsRepository<SemanticKernelMemoryRepository>()
+    .AddVectorEmbeddingsInitializer()
     .AddHostedService<TestEmbeddingsService>();
 
 var host = builder.Build();
