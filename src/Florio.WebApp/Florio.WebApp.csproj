@@ -27,6 +27,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Update="wwwroot\favicon.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Content Update="wwwroot\images\right-brance.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

@@ -488,3 +488,4 @@ $RECYCLE.BIN/
 !*/*.onnx/
 /.localassets/
 /.notes/
+*/wwwroot/lib/*
