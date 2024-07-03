@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
+        <ProjectReference Include="..\Florio.ServiceDefaults\Florio.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings.Qdrant\Florio.VectorEmbeddings.Qdrant.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Qdrant.Client" Version="8.0.2" />
+        <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
+        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.22.0" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Pages\Shared\Components\" />
+        <Folder Include="ViewComponents\" />
+        <Folder Include="wwwroot\images\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Update="wwwroot\favicon.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Update="wwwroot\images\right-brance.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <None Include="Embeddings\ModelFiles\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Embeddings\ModelFiles\word-embeddings.onnx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
