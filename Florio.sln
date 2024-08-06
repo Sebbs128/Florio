@@ -46,6 +46,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.Exporters.Onnx", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Florio.VectorDbManager", "src\Florio.VectorDbManager\Florio.VectorDbManager.csproj", "{579B7010-461A-42B4-9758-7B427F1B24E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Florio.VectorEmbeddings.CosmosDb", "src\Florio.VectorEmbeddings.CosmosDb\Florio.VectorEmbeddings.CosmosDb.csproj", "{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +114,10 @@ Global
 		{579B7010-461A-42B4-9758-7B427F1B24E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{579B7010-461A-42B4-9758-7B427F1B24E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{579B7010-461A-42B4-9758-7B427F1B24E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,6 +140,7 @@ Global
 		{AA1D5AC5-6006-4599-897D-3BF73E436435} = {303993C7-E22F-4DBC-8EDC-A96B7CD28436}
 		{6FFF0965-26F5-4B5C-AF37-2E2AAC1DC2F9} = {3EB1649C-5A92-41AD-A5B3-361134CF09D2}
 		{579B7010-461A-42B4-9758-7B427F1B24E2} = {514D6FB0-56CF-448A-BF4A-444752EBAD88}
+		{71BD41CD-2BCC-4C1B-857F-5C4A25F5D563} = {514D6FB0-56CF-448A-BF4A-444752EBAD88}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {18A79437-1DF3-4192-9D0A-00DE9CD65D93}

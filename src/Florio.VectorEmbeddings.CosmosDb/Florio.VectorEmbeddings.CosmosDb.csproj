@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Polly.Core" Version="8.4.1" />
+        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.43.0-preview.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
+    </ItemGroup>
+
+</Project>

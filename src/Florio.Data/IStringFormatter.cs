@@ -9,11 +9,13 @@ public interface IStringFormatter
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    // TODO: can't limit to just ASCII letters here, because this gets used for showing autocomplete results
+    //   ASCII letters brings vector size down under 4096, which is the max cosmosdb allows.
     string ToNormalizedString(string input) =>
         new(input
             .Normalize(NormalizationForm.FormD)
             .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-            .Where(c => c != '´')
+            .Where(char.IsAsciiLetter)// c != '´')
             .ToArray());
 
     /// <summary>
