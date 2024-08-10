@@ -426,11 +426,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             return [tokens[0]];
         }
 
-        if (tokens.Any(t => t.IndexOfAny([' ', '.']) > -1))
-        {
-            return [wordWithVariations];
-        }
-
         var originalWord = tokens[0];
         var variations = new List<string>
         {
@@ -446,6 +441,11 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             {
                 variations.Add(variant);
                 continue;
+            }
+
+            if (variant.IndexOfAny([' ', '.']) > -1)
+            {
+                return [wordWithVariations];
             }
 
             var variantLowered = variant.ToLowerInvariant();

@@ -67,131 +67,145 @@ public class GutenbergTextParserTests
     {
         {
             "Abachísta",
-            new List<string>
-            {
+            [
                 "Abachísta"
-            }
+            ]
+        },
+        {
+            "A dúa, A dúe, A dú[o]",
+            [
+                "A dúa",
+                "A dúe",
+                "A dú[o]"
+            ]
+        },
+        {
+            "A cínta, A cínt[o]la",
+            [
+                "A cínta",
+                "A cínt[o]la"
+            ]
+        },
+        {
+            "A cilóff[o], Andáre a cilóff[o]",
+            [
+                "A cilóff[o]",
+                "Andáre a cilóff[o]"
+            ]
         },
         {
             "Apẻndi[o], Apẻnd[o]",
-            new List<string>
-            {
+            [
                 "Apẻndi[o]",
                 "Apẻnd[o]"
-            }
+            ]
         },
         {
             "Affielíre, lísc[o], lít[o]",
-            new List<string>
-            {
+            [
                 "Affielíre",
                 "Affielísc[o]",
                 "Affielít[o]"
-            }
+            ]
         },
         {
             "Affieníre, nísc[o], nít[o]",
-            new List<string>
-            {
+            [
                 "Affieníre",
                 "Affienísc[o]",
                 "Affienít[o]",
-            }
+            ]
         },
         {
             "Affieu[o]líre, lísc[o], lít[o]",
-            new List<string>
-            {
+            [
                 "Affieu[o]líre",
                 "Affieu[o]lísc[o]",
                 "Affieu[o]lít[o]",
-            }
+            ]
         },
         {
             "Affíggere, fígg[o], físsi, físs[o] _or_ fítt[o]",
-            new List<string>
-            {
+            [
                 "Affíggere",
                 "Affígg[o]",
                 "Affíssi",
                 "Affíss[o]",
                 "Affítt[o]",
-            }
+            ]
         },
         {
             // https://en.wiktionary.org/wiki/udire#Italian
             "Audíre, ód[o], udíj, udít[o]",
-            new List<string>
-            {
+            [
                 "Audíre",
                 "Ód[o]",
                 "Vdíj",
                 "Vdít[o]",
-            }
+            ]
         },
         {
             "Dissegnáre, &c.",
-            new List<string>
-            {
+            [
                 "Dissegnáre, &c."
-            }
+            ]
         },
         {
             "Distrigáre, &c.",
-            new List<string>
-            {
+            [
                 "Distrigáre, &c."
-            }
+            ]
         },
         {
             "Fémmina, &c.",
-            new List<string>
-            {
+            [
                 "Fémmina, &c."
-            }
+            ]
+        },
+        {
+            "Mán[o] dẻstra _or_ drítt[o]",
+            [
+                "Mán[o] dẻstra",
+                "Mán[o] drítt[o]"
+            ]
         },
         {
             "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni",
-            new List<string>
-            {
+            [
                 "Sẻttezz[ó]ni, p[ó]nti, c[o]lisẻi, acqued[ó]tti, & sẻttezz[ó]ni"
-            }
+            ]
         },
         {
             "S[o]prandáre, uád[o], andái, andát[o]",
-            new List<string>
-            {
+            [
                 "S[o]prandáre",
                 "S[o]prauád[o]",
                 "S[o]prandái",
                 "S[o]prandát[o]",
-            }
+            ]
         },
         {
             "Torpẻnte, quási pígro, & oti[ó]s[o]",
-            new List<string>
-            {
+            [
                 "Torpẻnte, quási pígro, & oti[ó]s[o]"
-            }
+            ]
         },
         {
             // https://en.wiktionary.org/wiki/ungere#Italian
             "V´ngere, úng[o], unsi, ungiút[o], _or_ únt[o]",
-            new List<string>
-            {
+            [
                 "V´ngere",
                 "V´ng[o]",
                 "V´nsi",
                 "V´ngiút[o]",
                 "V´nt[o]",
-            }
+            ]
         },
         {
             "Z[o]nze[ó]ne, ún[o] chè n[o]n fà chè andáre a spáss[o]",
-            new List<string>
-            {
+            [
                 "Z[o]nze[ó]ne, ún[o] chè n[o]n fà chè andáre a spáss[o]"
-            }
+            ]
         }
     };
 
@@ -276,12 +290,12 @@ public class GutenbergTextParserTests
             // input
             "A",
             // expected output
-            new List<WordDefinition>()
+            []
         },
         // a sentence appearing before any page headings
         {
             "_A most copious and exact Dictionarie in_ Italian and English.",
-            new List<WordDefinition>()
+            []
         },
         // lines either side of the first page heading (including the page heading)
         {
@@ -297,15 +311,14 @@ public class GutenbergTextParserTests
 
             A, _The first letter of the alphabet, and the first vowell._
             """,
-            new List<WordDefinition>
-            {
+            [
                 new("A", "_The first letter of the alphabet, and the first vowell._")
-            }
+            ]
         },
         // the text after the last definition
         {
             "                                 FINIS.",
-            new List<WordDefinition>()
+            []
         },
         // a line before the first page heading, the page heading, some specific definitions for test cases, and some lines after the finish
         {
@@ -408,8 +421,7 @@ public class GutenbergTextParserTests
                                       SPEEDIE LEARNING OF
                                       The Italian Tongue.
             """,
-            new List<WordDefinition>
-            {
+            [
                 new("A", "_The first letter of the alphabet, and the first vowell._"),
                 new("A", "_a preposition or sign of the Datiue case, to, vnto, at, at the, to the._"),
                 new("A", "_a preposition or signe of the ablatiue case, namely comming after verbes of priuation, as_ Tógliere, Rubbáre, _&c. from, from of, of._"),
@@ -483,7 +495,7 @@ public class GutenbergTextParserTests
                 new("Vliuígn[o]", "of forme or colour of an oliue."),
                 new("Xisti[ó]ne", "_a kind of precious stone._"),
                 new("Xist[ó]ne", "_a place of exercise in faire weather, a wrestling-place._")
-            }
+            ]
         }
     };
 }
