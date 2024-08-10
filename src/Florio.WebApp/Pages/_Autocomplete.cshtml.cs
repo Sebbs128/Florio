@@ -30,7 +30,7 @@ public class AutocompleteModel(
     {
         if (!string.IsNullOrWhiteSpace(Search))
         {
-            var vector = _embeddingsModel.CalculateVector(_stringFormatter.ToPrintableNormalizedString(Search));
+            var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(Search));
 
             Results = await _repository
                 .FindByWord(vector, HttpContext.RequestAborted)

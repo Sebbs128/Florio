@@ -1,4 +1,4 @@
-using Florio.VectorEmbeddings.CosmosDb;
+using Florio.VectorEmbeddings.Qdrant;
 
 var builder = Host.CreateApplicationBuilder(args);
 

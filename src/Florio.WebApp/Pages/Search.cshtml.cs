@@ -32,7 +32,7 @@ public class SearchModel(
             return Page();
         }
 
-        var vector = _embeddingsModel.CalculateVector(_stringFormatter.ToPrintableNormalizedString(Term));
+        var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(Term));
 
         Results = _repository.FindMatches(vector, 10, HttpContext.RequestAborted);
 

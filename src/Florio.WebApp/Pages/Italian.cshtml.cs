@@ -31,7 +31,7 @@ public class ItalianModel(
             return RedirectToPage("Search");
         }
 
-        var vector = _embeddingsModel.CalculateVector(_stringFormatter.ToPrintableNormalizedString(Word));
+        var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(Word));
 
         WordDefinition = _repository.FindClosestMatch(vector, HttpContext.RequestAborted);
 

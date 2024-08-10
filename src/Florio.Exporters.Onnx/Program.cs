@@ -1,6 +1,5 @@
 ﻿using Florio.Data;
 using Florio.VectorEmbeddings.EmbeddingsModel;
-using Florio.VectorEmbeddings.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +17,9 @@ var stringFormatter = serviceProvider.GetRequiredService<IStringFormatter>();
 var parser = serviceProvider.GetRequiredService<IWordDefinitionParser>();
 var wordDefinitions = await parser.ParseLines().ToListAsync();
 
-var data = wordDefinitions.Select(wd =>
-    stringFormatter.ToPrintableNormalizedString(wd.Word));
+var data = wordDefinitions
+    .Select(wd => stringFormatter.NormalizeForVector(wd.Word))
+    .Distinct();
 
 var trainer = serviceProvider.GetRequiredService<VectorEmbeddingModelTrainer>();
 

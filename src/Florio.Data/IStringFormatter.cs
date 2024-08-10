@@ -24,6 +24,13 @@ public interface IStringFormatter
     /// <returns></returns>
     string ToPrintableString(string input);
 
+    string NormalizeForVector(string input) =>
+        new(input
+            .ToLowerInvariant()
+            .Normalize(NormalizationForm.FormD)
+            .Where(c => char.IsAsciiLetterLower(c) || c is ' ')
+            .ToArray());
+
     /// <summary>
     /// Converts a string to a plain ASCII form by removing diacritics,
     /// and symbols transcribers added to denote pronunciation
@@ -32,6 +39,6 @@ public interface IStringFormatter
     /// <returns></returns>
     string ToPrintableNormalizedString(string input) =>
         ToPrintableString(
-        ToNormalizedString(input))
+            ToNormalizedString(input))
         .ToLowerInvariant();
 }

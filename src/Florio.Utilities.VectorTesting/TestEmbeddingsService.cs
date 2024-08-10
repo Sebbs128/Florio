@@ -47,7 +47,7 @@ internal class TestEmbeddingsService(
 
         foreach (var testWord in tests)
         {
-            var normalisedWord = _stringFormatter.ToPrintableNormalizedString(testWord);
+            var normalisedWord = _stringFormatter.NormalizeForVector(testWord);
             var results = _repository.FindClosestMatch(model.CalculateVector(normalisedWord), cancellationToken);
 
             if (await results.AnyAsync(cancellationToken))

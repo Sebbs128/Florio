@@ -31,9 +31,10 @@ public class VectorDbInitializer(
 
         if (dbExists)
         {
-            // ensure the vector db actually has data
+            // ensure the vector hasn't changed, and the db actually has data
             var vectorA = model.CalculateVector("a");
             var vectorXistone = model.CalculateVector("xistone");
+
             var dbHasData =
                 await _repository.FindClosestMatch(vectorA, cancellationToken).AnyAsync(cancellationToken)
                 && await _repository.FindClosestMatch(vectorXistone, cancellationToken).AnyAsync(cancellationToken);
@@ -58,7 +59,7 @@ public class VectorDbInitializer(
         _logger.LogInformation("Populating vector database.");
 
         var records = await wordDefinitions
-            .GroupBy(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
+            .GroupBy(wd => _stringFormatter.NormalizeForVector(wd.Word))
             .SelectMany(wg =>
             {
                 var key = model.CalculateVector(wg.Key);

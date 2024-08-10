@@ -26,6 +26,8 @@ CheckForMissedSquareBrackets(stringFormatter, wordDefinitions);
 
 PrintCharactersFoundInWords(stringFormatter, wordDefinitions);
 
+PrintCharactersUsedForVectors(stringFormatter, wordDefinitions);
+
 static void PrintTotalCount(List<WordDefinition> wordDefinitions)
 {
     Console.WriteLine($"{wordDefinitions.Count} words were parsed.");
@@ -50,8 +52,15 @@ static void PrintAnyPossibleVariationIssues(List<WordDefinition> wordDefinitions
         .Where(w => char.IsLower(w, 0))
         .ToList();
 
-    Console.WriteLine($"Words that appear to be incorrectly parsed word variations:");
-    Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
+    if (potentialWordVariationIssues.Count > 0)
+    {
+        Console.WriteLine($"Words that appear to be incorrectly parsed word variations:");
+        Console.WriteLine(string.Join("\n", potentialWordVariationIssues));
+    }
+    else
+    {
+        Console.WriteLine("No potential incorrectly parsed word variations identitified.");
+    }
     Console.WriteLine();
 }
 
@@ -91,4 +100,18 @@ static void PrintCharactersFoundInWords(IStringFormatter stringFormatter, List<W
         Console.WriteLine(string.Join('\n', words));
         Console.WriteLine();
     }
+}
+
+static void PrintCharactersUsedForVectors(IStringFormatter stringFormatter, List<WordDefinition> wordDefinitions)
+{
+    var charsInAllWords = wordDefinitions
+        .SelectMany(wd => stringFormatter.NormalizeForVector(wd.Word))
+        .Distinct()
+        .Order()
+        .Select(c => $"'{c}'")
+        .ToArray();
+
+    Console.WriteLine($"Characters used in words: {string.Join(", ", charsInAllWords)}");
+    Console.WriteLine($"({charsInAllWords.Length} total)");
+    Console.WriteLine();
 }

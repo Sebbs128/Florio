@@ -20,8 +20,9 @@ public class SemanticKernelMemoryRepository(
 
     public Task<bool> CollectionExists(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(false);
+        return _vectorStore.DoesCollectionExistAsync(_settings.CollectionName, cancellationToken);
     }
+
     public async Task CreateCollection(int vectorSize, CancellationToken cancellationToken = default)
     {
         await _vectorStore.CreateCollectionAsync(_settings.CollectionName, cancellationToken);

@@ -2,13 +2,15 @@
 
 using Florio.VectorEmbeddings.EmbeddingsModel.ModelData;
 
+using Microsoft.Extensions.Options;
 using Microsoft.ML;
 using Microsoft.ML.Transforms.Text;
 
 namespace Florio.VectorEmbeddings.EmbeddingsModel;
-public class VectorEmbeddingModelTrainer(MLContext mlContext)
+public class VectorEmbeddingModelTrainer(MLContext mlContext, IOptions<EmbeddingsSettings> options)
 {
     private readonly MLContext _mlContext = mlContext;
+    private readonly IOptions<EmbeddingsSettings> _options = options;
 
     public void TrainAndSaveModel(IEnumerable<string> data, string onnxModelPath)
     {
@@ -22,12 +24,22 @@ public class VectorEmbeddingModelTrainer(MLContext mlContext)
         var dataView = _mlContext.Data.LoadFromEnumerable(data
             .Select(s => new InputStringData { Text = s }));
 
-        var embeddingPipeline =
-            _mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("CharTokens", "Text", useMarkerCharacters: true)
-            .Append(_mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
+        var ngramExtrator = _options.Value.MaximumVectorCount switch
+        {
+            null => _mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
                 ngramLength: 3,
                 useAllLengths: false,
-                weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
+                weighting: NgramExtractingEstimator.WeightingCriteria.Tf),
+            _ => _mlContext.Transforms.Text.ProduceNgrams("Features", "CharTokens",
+                ngramLength: 3,
+                maximumNgramsCount: _options.Value.MaximumVectorCount.Value,
+                useAllLengths: false,
+                weighting: NgramExtractingEstimator.WeightingCriteria.Tf)
+        };
+
+        var embeddingPipeline =
+            _mlContext.Transforms.Text.TokenizeIntoCharactersAsKeys("CharTokens", "Text", useMarkerCharacters: true)
+            .Append(ngramExtrator);
 
         var transformer = embeddingPipeline.Fit(dataView);
 

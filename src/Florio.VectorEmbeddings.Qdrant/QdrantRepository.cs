@@ -214,4 +214,6 @@ public sealed class QdrantRepository(
             GC.Collect();
         }
     }
+
+    public ValueTask<int> GetVectorDimensions(CancellationToken cancellationToken = default) => throw new NotImplementedException();
 }
