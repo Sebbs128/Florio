@@ -6,6 +6,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+        <ContainerRepository>florio-web-app</ContainerRepository>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
         <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
@@ -24,6 +29,7 @@
         <Folder Include="Pages\Shared\Components\" />
         <Folder Include="ViewComponents\" />
         <Folder Include="wwwroot\images\" />
+        <Folder Include="wwwroot\lib\" />
     </ItemGroup>
 
     <ItemGroup>

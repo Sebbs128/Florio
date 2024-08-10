@@ -114,7 +114,7 @@ public sealed class QdrantRepository(
 
     public async IAsyncEnumerable<WordDefinition> FindMatches(
         ReadOnlyMemory<float> vector,
-        int limit = 20,
+        int limit = 10,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var searchResults = await _qdrantClient.SearchAsync(_settings.CollectionName, vector,
@@ -209,7 +209,7 @@ public sealed class QdrantRepository(
             }, cancellationToken);
             _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount - 1, values.Count);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
 
             GC.Collect();
         }

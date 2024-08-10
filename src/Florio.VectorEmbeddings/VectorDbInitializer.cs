@@ -1,4 +1,6 @@
-﻿using Florio.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Florio.Data;
 using Florio.VectorEmbeddings.EmbeddingsModel;
 using Florio.VectorEmbeddings.Repositories;
 
@@ -22,14 +24,16 @@ public class VectorDbInitializer(
 
     public async Task<bool> CheckDatabaseInitializedAsync(CancellationToken cancellationToken = default)
     {
-        var dbExists = await _repository.CollectionExists(cancellationToken);
         var model = _embeddingsModelFactory.GetModel();
+        ThrowIfModelIsNull(model);
+
+        var dbExists = await _repository.CollectionExists(cancellationToken);
 
         if (dbExists)
         {
             // ensure the vector db actually has data
-            var vectorA = model!.CalculateVector("a");
-            var vectorXistone = model!.CalculateVector("xistone");
+            var vectorA = model.CalculateVector("a");
+            var vectorXistone = model.CalculateVector("xistone");
             var dbHasData =
                 await _repository.FindClosestMatch(vectorA, cancellationToken).AnyAsync(cancellationToken)
                 && await _repository.FindClosestMatch(vectorXistone, cancellationToken).AnyAsync(cancellationToken);
@@ -47,14 +51,19 @@ public class VectorDbInitializer(
     public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
     {
         var model = _embeddingsModelFactory.GetModel();
+        ThrowIfModelIsNull(model);
+
         var wordDefinitions = _textParser.ParseLines(cancellationToken);
 
         _logger.LogInformation("Populating vector database.");
 
         var records = await wordDefinitions
-            .Select(wd => new WordDefinitionEmbedding(
-                model!.CalculateVector(_stringFormatter.ToPrintableNormalizedString(wd.Word)),
-                wd))
+            .GroupBy(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
+            .SelectMany(wg =>
+            {
+                var key = model.CalculateVector(wg.Key);
+                return wg.Select(wd => new WordDefinitionEmbedding(key, wd));
+            })
             .ToListAsync(cancellationToken);
 
         if (!await _repository.CollectionExists(cancellationToken))
@@ -72,6 +81,14 @@ public class VectorDbInitializer(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to populate vector database.");
+        }
+    }
+
+    private static void ThrowIfModelIsNull([NotNull] VectorEmbeddingModel? model)
+    {
+        if (model is null)
+        {
+            throw new FileNotFoundException("Unable to load ONNX model. Ensure the .onnx file exists and the setting points to the correct file.");
         }
     }
 }

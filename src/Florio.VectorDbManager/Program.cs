@@ -1,6 +1,6 @@
-using Florio.VectorEmbeddings.Qdrant;
+using Florio.VectorEmbeddings.CosmosDb;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddQdrantClient("qdrant");
@@ -11,11 +11,5 @@ builder.Services.AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSetti
     .AddVectorEmbeddingsInitializer();
 
 var app = builder.Build();
-
-app.MapDefaultEndpoints();
-
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
 
 app.Run();

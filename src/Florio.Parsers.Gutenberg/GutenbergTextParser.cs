@@ -420,6 +420,12 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             [",", "_or_", " or "],
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+        // if just a single value, return it
+        if (tokens is { Length: 1 })
+        {
+            return [tokens[0]];
+        }
+
         if (tokens.Any(t => t.IndexOfAny([' ', '.']) > -1))
         {
             return [wordWithVariations];
@@ -473,16 +479,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                     }
 
                     return tokens.Select(w => w.CapitaliseFirstLetter());
-                    //return tokens.Select(w =>
-                    //{
-                    //    // if starts with "u", change to "V"
-                    //    // shouldn't be any cases with diacritics (eg. 'Ú') that hit this branch
-                    //    var firstLetter = char.ToUpperInvariant(w[0] == 'U'
-                    //        ? 'V'
-                    //        : w[0]);
-
-                    //    return $"{firstLetter}{w[1..]}";
-                    //});
                 }
                 if (startOfRange == 0)
                 {
