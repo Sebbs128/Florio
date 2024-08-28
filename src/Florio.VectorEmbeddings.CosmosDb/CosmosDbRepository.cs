@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Florio.Data;
 using Florio.VectorEmbeddings.CosmosDb.Models;
+using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Repositories;
 
 using Microsoft.Azure.Cosmos;
@@ -61,7 +62,7 @@ public sealed class CosmosDbRepository(
 
                 var container = containerResponse.Container;
 
-                return container.GetItemLinqQueryable<VectorGroupDocument>().Any();
+                return container.GetItemLinqQueryable<VectorGroupDocument>().Count() > 73_000;
             }
             catch (CosmosException cosmosEx) when (cosmosEx is { StatusCode: HttpStatusCode.NotFound })
             {
@@ -110,9 +111,9 @@ public sealed class CosmosDbRepository(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         const string queryText = """
-            SELECT TOP 1 v.wordDefinitions
+            SELECT TOP 1 VectorDistance(v.vector, @targetVector) AS score, v.wordDefinitions
             FROM vectorGroupDocument v
-            WHERE VectorDistance(v.vector, @targetVector) > @threshold
+            WHERE score > @threshold
             ORDER BY VectorDistance(v.vector, @targetVector)
             """;
 
@@ -133,6 +134,11 @@ public sealed class CosmosDbRepository(
                     yield break;
                 }
 
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Nearest result to {vector} has similarity {similarity}", vector.ToSparseRepresentation(), result.score);
+                }
+
                 foreach (var item in result.wordDefinitions)
                 {
                     yield return item;
@@ -147,7 +153,7 @@ public sealed class CosmosDbRepository(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         const string queryText = """
-            SELECT v.wordDefinitions
+            SELECT VectorDistance(v.vector, @targetVector) AS score, v.wordDefinitions
             FROM vectorGroupDocument v
             ORDER BY VectorDistance(v.vector, @targetVector)
             OFFSET 0 LIMIT @limit
@@ -163,11 +169,21 @@ public sealed class CosmosDbRepository(
         while (feed.HasMoreResults && !cancellationToken.IsCancellationRequested)
         {
             var response = await feed.ReadNextAsync(cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count());
+            }
             foreach (var result in response)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     yield break;
+                }
+
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Result \"{word}\" has similarity score {score}", result.wordDefinitions[0].word, result.score);
                 }
 
                 foreach (var item in result.wordDefinitions)
@@ -180,10 +196,11 @@ public sealed class CosmosDbRepository(
 
     public async IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
+        int limit = 10,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         const string queryText = """
-            SELECT TOP 10 v.wordDefinitions
+            SELECT TOP 10 VectorDistance(v.vector, @targetVector) AS score, v.wordDefinitions
             FROM vectorGroupDocument v
             ORDER BY VectorDistance(v.vector, @targetVector)
             """;
@@ -197,11 +214,21 @@ public sealed class CosmosDbRepository(
         while (feed.HasMoreResults && !cancellationToken.IsCancellationRequested)
         {
             var response = await feed.ReadNextAsync(cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count());
+            }
             foreach (var result in response)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     yield break;
+                }
+
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Result \"{word}\" has similarity score {score}", result.wordDefinitions[0].word, result.score);
                 }
 
                 yield return result.wordDefinitions.First();
@@ -213,14 +240,6 @@ public sealed class CosmosDbRepository(
         IReadOnlyList<WordDefinitionEmbedding> values,
         CancellationToken cancellationToken = default)
     {
-        var vectorComparer = EqualityComparer<float[]>.Create((x, y) =>
-            (x, y) switch
-            {
-                (null, null) => true,
-                (null, _) or (_, null) => false,
-                _ => x.SequenceEqual(y)
-            });
-
         var groupedByVector = values
             .GroupBy(v => v.Vector)
             .Select(vg => new VectorGroupDocument(
@@ -238,17 +257,18 @@ public sealed class CosmosDbRepository(
         var container = GetContainer(_cosmosClient);
         int itemsCount = 0;
 
-        var initialThroughput = await container.ReadThroughputAsync(cancellationToken);
+        var batchSize = 5;
 
-        var batchSize = 5;// Math.Max(initialThroughput ?? 400 / 40, 5);
-
-        foreach (var item in groupedByVector.Chunk(batchSize))
+        foreach (var batch in groupedByVector.Chunk(batchSize))
         {
+
             await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
             {
-                await Task.WhenAll(item.Select(i => container.UpsertItemAsync(i, cancellationToken: cancelToken)));
+                await Task.WhenAll(batch.Select(i =>
+                    container.UpsertItemAsync(i, new PartitionKey(i.partitionKey), cancellationToken: cancelToken)));
             }, cancellationToken);
-            itemsCount += item.Sum(i => i.wordDefinitions.Length);
+
+            itemsCount += batch.Sum(i => i.wordDefinitions.Length);
             _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount, values.Count);
         }
 

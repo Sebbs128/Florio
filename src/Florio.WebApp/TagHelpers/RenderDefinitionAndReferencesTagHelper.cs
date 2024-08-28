@@ -169,7 +169,7 @@ public class RenderDefinitionAndReferencesTagHelper(
         var linkTag = new TagBuilder("a");
 
         var normalised = _stringFormatter.ToPrintableNormalizedString(referencedWord);
-        var vector = _embeddingsModel.CalculateVector(normalised);
+        var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(normalised));
         var matches = _repository.FindClosestMatch(vector);
 
         if (await matches.AnyAsync())

@@ -21,9 +21,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Embeddings\ModelFiles\word-embeddings.onnx">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <None Include="..\Florio.Exporters.Onnx\Data\word-embeddings.onnx" Link="Embeddings\ModelFiles\word-embeddings.onnx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

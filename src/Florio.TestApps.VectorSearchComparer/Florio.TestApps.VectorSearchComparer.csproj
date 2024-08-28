@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-Florio.TestApps.VectorSearchComparer-003a85d2-522c-4291-8e51-cff9a8f0ab40</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Microsoft.Azure.Cosmos" Version="8.1.0" />
+        <PackageReference Include="Aspire.Qdrant.Client" Version="8.1.0" />
+        <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
+        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.22.0" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
+        <ProjectReference Include="..\Florio.ServiceDefaults\Florio.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings.CosmosDb\Florio.VectorEmbeddings.CosmosDb.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings.Qdrant\Florio.VectorEmbeddings.Qdrant.csproj" />
+        <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="Embeddings\ModelFiles\word-embeddings.onnx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+</Project>

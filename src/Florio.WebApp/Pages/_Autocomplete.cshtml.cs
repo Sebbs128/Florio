@@ -13,11 +13,11 @@ namespace Florio.WebApp.Pages;
 [OutputCache(VaryByQueryKeys = [nameof(Search)], Duration = 300)]
 [ResponseCache(VaryByQueryKeys = [nameof(Search)], Duration = 30 * 60)]
 public class AutocompleteModel(
-    IVectorEmbeddingModelFactory embeddingsModel,
+    IVectorEmbeddingModelFactory embeddingsModelFactory,
     IWordDefinitionRepository repository,
     IStringFormatter stringFormatter) : PageModel
 {
-    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModel.GetModel();
+    private readonly VectorEmbeddingModel _embeddingsModel = embeddingsModelFactory.GetModel();
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
 
@@ -33,7 +33,7 @@ public class AutocompleteModel(
             var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(Search));
 
             Results = await _repository
-                .FindByWord(vector, HttpContext.RequestAborted)
+                .FindByWord(vector, cancellationToken: HttpContext.RequestAborted)
                 .Select(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
                 .ToListAsync();
         }

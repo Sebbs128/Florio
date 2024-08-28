@@ -15,7 +15,7 @@ public interface IStringFormatter
         new(input
             .Normalize(NormalizationForm.FormD)
             .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-            .Where(char.IsAsciiLetter)// c != '´')
+            .Where(c => c != '´')
             .ToArray());
 
     /// <summary>

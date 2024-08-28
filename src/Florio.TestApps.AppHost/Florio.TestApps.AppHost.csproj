@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>e1603c94-de06-4ad6-8e25-e3d382585762</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="8.1.0" />
+        <PackageReference Include="Aspire.Hosting.Azure.CosmosDB" Version="8.1.0" />
+        <PackageReference Include="Aspire.Hosting.Qdrant" Version="8.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.TestApps.VectorSearchComparer\Florio.TestApps.VectorSearchComparer.csproj" />
+        <ProjectReference Include="..\Florio.VectorDbManager\Florio.VectorDbManager.csproj" />
+    </ItemGroup>
+
+</Project>

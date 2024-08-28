@@ -3,7 +3,7 @@
 namespace Florio.VectorEmbeddings.CosmosDb.Models;
 
 #pragma warning disable IDE1006 // Naming Styles
-internal record QueryResult(WordDefinitionDocument[] wordDefinitions);
+internal record QueryResult(float score, WordDefinitionDocument[] wordDefinitions);
 
 internal record VectorGroupDocument(
     string id,

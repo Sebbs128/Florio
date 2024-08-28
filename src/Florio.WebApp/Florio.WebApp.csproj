@@ -47,7 +47,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Embeddings\ModelFiles\word-embeddings.onnx">
+      <None Include="Embeddings\ModelFiles\word-embeddings.onnx">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

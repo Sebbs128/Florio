@@ -7,9 +7,9 @@ var cosmosdb = builder.AddAzureCosmosDB("cosmos")
         config.WithHttpsEndpoint(8081, 8081, "emulator-port");
     });
 
-//var qdrant = builder.AddQdrant("qdrant")
-//    .WithImageTag("v1.10.0")
-//    .WithDataVolume();
+var qdrant = builder.AddQdrant("qdrant")
+    .WithImageTag("v1.10.0")
+    .WithDataVolume();
 
 builder.AddProject<Projects.Florio_VectorDbManager>("vectordbmanager")
     //.WithReference(qdrant);

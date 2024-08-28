@@ -1,7 +1,10 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
+using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 
 using Florio.Data;
+using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Repositories;
 
 using Google.Protobuf.Collections;
@@ -9,6 +12,7 @@ using Google.Protobuf.Collections;
 using Grpc.Core;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.ML.OnnxRuntime.Tensors;
 
 using Polly;
 
@@ -73,6 +77,10 @@ public sealed class QdrantRepository(
 
         if (searchResults.Count == 0)
         {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("No result for {vector} found within {threshold} distance", vector.ToSparseRepresentation(), _settings.ScoreThreshold);
+            }
             yield break;
         }
 
@@ -83,6 +91,10 @@ public sealed class QdrantRepository(
                 yield break;
             }
 
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Nearest result to {vector} has similarity {similarity}", vector.ToSparseRepresentation(), result.Score);
+            }
             yield return CreateWordDefinitionFromPayload(result.Payload);
         }
     }
@@ -97,6 +109,11 @@ public sealed class QdrantRepository(
             payloadSelector: true,
             cancellationToken: cancellationToken);
 
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), searchResults.Count);
+        }
+
         if (searchResults.Count == 0)
         {
             yield break;
@@ -109,12 +126,18 @@ public sealed class QdrantRepository(
                 yield break;
             }
 
-            yield return CreateWordDefinitionFromPayload(result.Payload);
+            var wordDefinition = CreateWordDefinitionFromPayload(result.Payload);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Result \"{word}\" has similarity score {score}", wordDefinition.Word, result.Score);
+            }
+            yield return wordDefinition;
         }
     }
 
     public async IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
+        int limit = 10,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var searchResults = await _qdrantClient.SearchGroupsAsync(_settings.CollectionName, vector,
@@ -124,6 +147,11 @@ public sealed class QdrantRepository(
             payloadSelector: true,
             cancellationToken: cancellationToken);
 
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), searchResults.Count);
+        }
+
         if (searchResults.Count == 0)
         {
             yield break;
@@ -136,7 +164,12 @@ public sealed class QdrantRepository(
                 yield break;
             }
 
-            yield return CreateWordDefinitionFromPayload(result.Hits[0].Payload);
+            var wordDefinition = CreateWordDefinitionFromPayload(result.Hits[0].Payload);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Result \"{word}\" has similarity score {score}", wordDefinition.Word, result.Hits[0].Score);
+            }
+            yield return wordDefinition;
         }
     }
 
