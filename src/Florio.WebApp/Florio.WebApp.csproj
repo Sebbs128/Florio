@@ -19,9 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Qdrant.Client" Version="8.0.2" />
+        <PackageReference Include="Aspire.Qdrant.Client" Version="8.2.0" />
         <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
-        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.22.0" />
+        <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.23.0" />
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 

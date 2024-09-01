@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Polly.Core" Version="8.4.1" />
-    <PackageReference Include="Qdrant.Client" Version="1.10.0" />
+    <PackageReference Include="Qdrant.Client" Version="1.11.0" />
   </ItemGroup>
 
   <ItemGroup>
