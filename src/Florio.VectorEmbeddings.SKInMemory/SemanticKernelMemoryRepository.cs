@@ -2,6 +2,7 @@
 using System.Text.Json;
 
 using Florio.Data;
+using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Repositories;
 
 using Microsoft.Extensions.Logging;
@@ -42,20 +43,20 @@ public class SemanticKernelMemoryRepository(
 
         if (searchResult is null || !await searchResult.AnyAsync(cancellationToken))
         {
-            _logger.LogInformation("No result for {vector} found within {threshold} distance", vector, _settings.ScoreThreshold);
+            _logger.LogDebug("No result for {vector} found within {threshold} distance", vector.ToSparseRepresentation(), _settings.ScoreThreshold);
             yield break;
         }
 
         await foreach (var result in searchResult)
         {
-            _logger.LogInformation("Nearest result to {vector} has similarity {similarity}", vector, result.Item2);
+            _logger.LogDebug("Nearest result to {vector} has similarity {similarity}", vector.ToSparseRepresentation(), result.Item2);
             yield return CreateWordDefinition(result.Item1);
         }
     }
 
     public IAsyncEnumerable<WordDefinition> FindMatches(
         ReadOnlyMemory<float> vector,
-        int limit = 20,
+        int limit = 10,
         CancellationToken cancellationToken = default)
     {
         return _vectorStore.GetNearestMatchesAsync(_settings.CollectionName, vector, limit,

@@ -38,16 +38,17 @@ internal class TestEmbeddingsService(
             "Cóllerra", // Cóllera
         ];
 
-        Console.WriteLine("Top 10 matches for \"abbellare\":");
-        await foreach (var match in _repository.FindMatches(model.CalculateVector("abbellare"), 10, cancellationToken: cancellationToken))
-        {
-            Console.WriteLine($"{match.Word}: {match.Definition}");
-            Console.WriteLine();
-        }
-
         foreach (var testWord in tests)
         {
             var normalisedWord = _stringFormatter.NormalizeForVector(testWord);
+            Console.WriteLine($"Top 10 matches for \"{testWord}\":"); // equivalent to page route /Search?term={word}
+            await foreach (var match in _repository.FindMatches(model.CalculateVector(normalisedWord), 10, cancellationToken: cancellationToken))
+            {
+                Console.WriteLine($"{match.Word}: {match.Definition}");
+                Console.WriteLine();
+            }
+
+            Console.WriteLine($"Direct lookup for \"{testWord}\":"); // equivalent to page route /Italian/{word}
             var results = _repository.FindClosestMatch(model.CalculateVector(normalisedWord), cancellationToken);
 
             if (await results.AnyAsync(cancellationToken))
@@ -61,7 +62,7 @@ internal class TestEmbeddingsService(
             }
             else
             {
-                Console.WriteLine($"No best match for \"{testWord}\" was found.");
+                Console.WriteLine($"No best match for \"{testWord}\" was found within the score threshold.");
             }
             Console.WriteLine();
         }
