@@ -468,12 +468,12 @@ public class GutenbergTextParserTests
                       Máglia lárga.    }
                                        }
                       Máglia l[ó]nga.  }
-                                       } Certain net-worke
-                      Máglia quádra.   } so called of Semsters.
+                                       }
+                      Máglia quádra.   }
                                        }
                       Máglia strétta.  }
                                        }
-                      Máglia t[ó]nda.  }
+                      Máglia t[ó]nda.  } Certain net-worke so called of Semsters.
                     """),
                 new("Prẻzzáre", "_ as_ Prẻgiáre, _to bargane or make price for any thing._")
                 {
