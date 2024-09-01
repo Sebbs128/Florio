@@ -8,6 +8,6 @@
 @foreach (var word in Model.Results)
 {
     <li>
-        <a class="dropdown-item" asp-page="Italian" asp-route-word="@word">@word</a>
+        <a class="dropdown-item text-wrap" asp-page="Italian" asp-route-word="@word">@word</a>
     </li>
 }
