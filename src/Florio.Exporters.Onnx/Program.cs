@@ -1,4 +1,5 @@
 ﻿using Florio.Data;
+using Florio.VectorEmbeddings;
 using Florio.VectorEmbeddings.EmbeddingsModel;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,8 @@ string onnxModelPath = GetAbsolutePath(onnxModelRelativePath);
 var services = new ServiceCollection()
     .AddGutenbergDownloaderAndParser(@".localassets\pg56200.txt")
     .AddVectorEmbeddingsTrainer();
+
+services.AddOptions<EmbeddingsSettings>();
 
 var serviceProvider = services.BuildServiceProvider();
 
