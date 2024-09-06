@@ -379,6 +379,20 @@ public class GutenbergTextParserTests
                                }
               Máglia t[ó]nda.  }
 
+            [Ó]rl[o], _a hem, a welt, a brim, a ledge, a seluedge, an edge, a
+            border, of any thing. Also an orle in armory, the placing of any thing
+            in, about or vpon a border._
+
+              [Ó]rl[o] álla spagnuóla.  }
+                                        }
+              [Ó]rl[o] crésp[o].        }
+                                        }  _Certaine hemes
+              [Ó]rl[o] pertugiát[o].    }   so called of
+                                        }   Seamsters._
+              [Ó]rl[o] pián[o].         }
+                                        }
+              [Ó]rl[o] retín[o].        }
+
             Prẻzzáre,_ as_ Prẻgiáre, _to bargane or make price for any thing._
 
             Pr<i>ò</i> Pr<i>ò</i>, _much much good may it doe you, well may you fare._
@@ -461,20 +475,18 @@ public class GutenbergTextParserTests
                 {
                     ReferencedWords = ["Fémina"]
                 },
-                new("Máglia degl'ócchij",
-                    """
-                    _a pin and web or other spots in the eies._
-                    
-                      Máglia lárga.    }
-                                       }
-                      Máglia l[ó]nga.  }
-                                       }
-                      Máglia quádra.   }
-                                       }
-                      Máglia strétta.  }
-                                       }
-                      Máglia t[ó]nda.  } Certain net-worke so called of Semsters.
-                    """),
+                new("Máglia degl'ócchij", "_a pin and web or other spots in the eies._"),
+                new("Máglia lárga", "_Certain net-worke so called of Semsters._"),
+                new("Máglia l[ó]nga", "_Certain net-worke so called of Semsters._"),
+                new("Máglia quádra", "_Certain net-worke so called of Semsters._"),
+                new("Máglia strétta", "_Certain net-worke so called of Semsters._"),
+                new("Máglia t[ó]nda", "_Certain net-worke so called of Semsters._"),
+                new("[Ó]rl[o]", "_a hem, a welt, a brim, a ledge, a seluedge, an edge, a border, of any thing. Also an orle in armory, the placing of any thing in, about or vpon a border._"),
+                new("[Ó]rl[o] álla spagnuóla", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] crésp[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] pertugiát[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] pián[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] retín[o]", "_Certaine hemes so called of Seamsters._"),
                 new("Prẻzzáre", "_ as_ Prẻgiáre, _to bargane or make price for any thing._")
                 {
                     ReferencedWords = [ "Prẻgiáre" ]

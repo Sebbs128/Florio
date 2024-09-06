@@ -17,10 +17,8 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         var state = new ParserState();
         var lineEnumerator = _downloader.ReadLines(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
-        while (await lineEnumerator.MoveNextAsync())
+        await foreach (var line in _downloader.ReadLines(cancellationToken))
         {
-            var line = lineEnumerator.Current;
-
             // handle end indicator
             // end indicator is "                                 FINIS."
             if (IsEndOfDefinitions(line))
@@ -56,30 +54,15 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             //  currently built line should be returned or not
             if (string.IsNullOrWhiteSpace(line))
             {
-                if (await lineEnumerator.MoveNextAsync())
+                foreach (var definitionLine in ParseBuiltLine(lineBuilder, state))
                 {
-                    line = lineEnumerator.Current;
+                    yield return definitionLine;
+                }
 
-                    if (!line.Contains('}'))
-                    {
-                        foreach (var definitionLine in ParseBuiltLine(lineBuilder, state))
-                        {
-                            yield return definitionLine;
-                        }
-
-                        if (!ContainsDefinition(line))
-                        {
-                            state.FinishedHandlingDefintion();
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        // add a blank line if the current line is part of an expanded definition
-                        // (first is merely ending the previous line; second is the blank line)
-                        lineBuilder.AppendLine()
-                            .AppendLine();
-                    }
+                if (!ContainsDefinition(line))
+                {
+                    state.FinishedHandlingDefintion();
+                    continue;
                 }
             }
 
@@ -145,6 +128,11 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         var fullLine = lineBuilder.ToString().Trim();
         lineBuilder.Clear();
 
+        if (fullLine.Contains('}'))
+        {
+            return ParseGroupedWordDefinition(fullLine);
+        }
+
         var definitionLine = ParseWordDefinition(fullLine);
 
         // skip false cases, where the Word is empty
@@ -154,19 +142,18 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
 
             state.UpdatePreviousDefinition(definitionLine);
 
-            foreach (var variant in GetVariations(definitionLine.Word))
-            {
-                yield return definitionLine with
+            return GetVariations(definitionLine.Word)
+                .Select(variant => definitionLine with
                 {
                     Word = variant
-                };
-            }
+                });
         }
         else
         {
             // hit a case where no word is identified
             // there are some expected instances of this
             //Debugger.Break();
+            return Enumerable.Empty<WordDefinition>();
         }
     }
 
@@ -255,6 +242,40 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         }
     }
 
+    internal static IEnumerable<WordDefinition> ParseGroupedWordDefinition(string lines)
+    {
+        var definition = string.Empty;
+        var wordDefinitions = new List<WordDefinition>();
+        foreach (var line in lines.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (line.Equals("}", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (line[0] != '}')
+            {
+                wordDefinitions.Add(new WordDefinition(line[..line.IndexOf('.')], string.Empty));
+            }
+
+            var right = line[(line.IndexOf('}') + 1)..];
+            if (!string.IsNullOrEmpty(right))
+            {
+                definition += $"{right.Trim()} ";
+            }
+        }
+        definition = definition.Trim();
+        if (definition[0] != '_')
+        {
+            definition = $"_{definition}_";
+        }
+        return wordDefinitions
+            .Select(wd => wd with
+            {
+                Definition = definition
+            });
+    }
+
     internal static bool IsEndOfDefinitions(string line) =>
         line.Trim().Equals("FINIS.", StringComparison.Ordinal);
 
@@ -275,7 +296,8 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     //   and neuer the neerer, doe and vndoe the day is long enough._
     // Vliuígn[o] has been fixed in PG as of 2024-05-30
     internal static bool ContainsDefinition(string line) =>
-        line.Contains(" _", StringComparison.OrdinalIgnoreCase) || line.Contains(",_", StringComparison.OrdinalIgnoreCase) ||
+        line.Contains(" _", StringComparison.Ordinal) || line.Contains(",_", StringComparison.Ordinal) ||
+        line.Contains('}', StringComparison.Ordinal) ||
         // special edge cases
         line.StartsWith("Fáre a guísa délla", StringComparison.Ordinal) ||
         line.StartsWith("Vliuígn[o]", StringComparison.Ordinal); // this has been fixed in PG as of 2024-05-30
