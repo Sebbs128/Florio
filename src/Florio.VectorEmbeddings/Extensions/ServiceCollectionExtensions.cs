@@ -42,11 +42,11 @@ public static class ServiceCollectionExtensions
                 .Get<EmbeddingsSettings>() ?? new EmbeddingsSettings());
     }
 
-    public static IServiceCollection AddVectorEmbeddingsInitializer(this IServiceCollection services)
+    public static IServiceCollection AddVectorEmbeddingsMigrations<TMigrator>(this IServiceCollection services)
+        where TMigrator : class, IRepositoryMigrator
     {
         services
-            .AddSingleton<VectorDbInitializer>()
-            .AddHostedService<VectorDbInitializerBackgroundService>()
+            .AddSingleton<IRepositoryMigrator, TMigrator>()
             .AddSingleton(sp => sp.GetRequiredService<IConfiguration>()
                 .GetSection(nameof(VectorDbInitializerSettings))
                 .Get<VectorDbInitializerSettings>() ?? new VectorDbInitializerSettings());

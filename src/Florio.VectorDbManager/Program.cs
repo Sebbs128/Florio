@@ -1,3 +1,4 @@
+using Florio.VectorEmbeddings;
 using Florio.VectorEmbeddings.Qdrant;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -8,7 +9,8 @@ builder.AddQdrantClient("qdrant");
 builder.Services.AddGutenbergDownloaderAndParser();
 builder.Services.AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSettings:OnnxFilePath"]!)
     .AddVectorEmbeddingsRepository<QdrantRepository>()
-    .AddVectorEmbeddingsInitializer();
+    .AddVectorEmbeddingsMigrations<QdrantMigrator>()
+    .AddHostedService<VectorDbInitializerBackgroundService>();
 
 var app = builder.Build();
 

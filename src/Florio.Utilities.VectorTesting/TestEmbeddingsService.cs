@@ -1,5 +1,4 @@
 ﻿using Florio.Data;
-using Florio.VectorEmbeddings;
 using Florio.VectorEmbeddings.EmbeddingsModel;
 using Florio.VectorEmbeddings.Repositories;
 
@@ -7,14 +6,14 @@ using Microsoft.Extensions.Hosting;
 
 namespace Florio.Utilities.VectorTesting;
 internal class TestEmbeddingsService(
-    VectorDbInitializer vectorDbInitializer,
+    IRepositoryMigrator migrator,
     IWordDefinitionRepository repository,
     IVectorEmbeddingModelFactory vectorEmbeddingModelFactory,
     IStringFormatter stringFormatter,
     IHostApplicationLifetime hostLifetime)
     : BackgroundService
 {
-    private readonly VectorDbInitializer _vectorDbInitializer = vectorDbInitializer;
+    private readonly IRepositoryMigrator _migrator = migrator;
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IVectorEmbeddingModelFactory _vectorEmbeddingModelFactory = vectorEmbeddingModelFactory;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
@@ -24,11 +23,7 @@ internal class TestEmbeddingsService(
     {
         var model = _vectorEmbeddingModelFactory.GetModel();
 
-        // wait for vector db initialization
-        while (!_vectorDbInitializer.VectorDbInitCompleted)
-        {
-            await Task.Delay(10, cancellationToken);
-        }
+        await _migrator.MigrateAsync(cancellationToken);
 
         string[] tests =
         [

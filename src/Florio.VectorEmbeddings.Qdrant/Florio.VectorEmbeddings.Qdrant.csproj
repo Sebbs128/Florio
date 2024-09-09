@@ -1,18 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Polly.Core" Version="8.4.1" />
-    <PackageReference Include="Qdrant.Client" Version="1.11.0" />
-  </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="FirstAttemptQdrantMigrator.cs" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Polly.Core" Version="8.4.1" />
+        <PackageReference Include="Qdrant.Client" Version="1.11.0" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
+    </ItemGroup>
 
 </Project>

@@ -1,39 +1,41 @@
-﻿using Florio.VectorEmbeddings.Settings;
+﻿using System.Diagnostics;
+
+using Florio.VectorEmbeddings.Repositories;
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using OpenTelemetry.Trace;
+
 namespace Florio.VectorEmbeddings;
 
 public class VectorDbInitializerBackgroundService(
+    IRepositoryMigrator migrator,
     IHostApplicationLifetime hostApplicationLifetime,
-    VectorDbInitializer vectorDbInitializer,
-    VectorDbInitializerSettings settings,
     ILogger<VectorDbInitializerBackgroundService> logger)
     : BackgroundService
 {
-    private readonly IHostApplicationLifetime _hostApplicationLifetime = hostApplicationLifetime;
-    private readonly VectorDbInitializer _vectorDbInitializer = vectorDbInitializer;
-    private readonly VectorDbInitializerSettings _settings = settings;
-    private readonly ILogger<VectorDbInitializerBackgroundService> _logger = logger;
+    public const string ActivitySourceName = "Migrations";
+    private static readonly ActivitySource _activitySource = new(ActivitySourceName);
 
-    public bool VectorDbInitCompleted { get; private set; }
+    private readonly IRepositoryMigrator _migrator = migrator;
+    private readonly IHostApplicationLifetime _hostApplicationLifetime = hostApplicationLifetime;
+    private readonly ILogger<VectorDbInitializerBackgroundService> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Checking if vector database has been initialized.");
+        using var activity = _activitySource.StartActivity("Migrating vector database", ActivityKind.Client);
 
-        if (!await _vectorDbInitializer.CheckDatabaseInitializedAsync(cancellationToken))
+        try
         {
-            _logger.LogInformation("Vector database is not initialized.");
-
-            await _vectorDbInitializer.InitializeDatabaseAsync(cancellationToken);
+            await _migrator.MigrateAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            activity?.RecordException(ex);
+            throw;
         }
 
-        if (_settings.ShutdownAfterFinish)
-        {
-            _logger.LogInformation("Shutdown after finish is set.");
-            _hostApplicationLifetime.StopApplication();
-        }
+        _hostApplicationLifetime.StopApplication();
     }
 }

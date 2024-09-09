@@ -12,10 +12,11 @@ namespace Florio.VectorEmbeddings.SKInMemory;
 
 #pragma warning disable SKEXP0001, SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 public class SemanticKernelMemoryRepository(
+    VolatileMemoryStore vectorStore,
     EmbeddingsSettings settings,
     ILogger<SemanticKernelMemoryRepository> logger) : IWordDefinitionRepository
 {
-    private readonly VolatileMemoryStore _vectorStore = new();
+    private readonly VolatileMemoryStore _vectorStore = vectorStore;
     private readonly EmbeddingsSettings _settings = settings;
     private readonly ILogger<SemanticKernelMemoryRepository> _logger = logger;
 
@@ -24,10 +25,6 @@ public class SemanticKernelMemoryRepository(
         return _vectorStore.DoesCollectionExistAsync(_settings.CollectionName, cancellationToken);
     }
 
-    public async Task CreateCollection(int vectorSize, CancellationToken cancellationToken = default)
-    {
-        await _vectorStore.CreateCollectionAsync(_settings.CollectionName, cancellationToken);
-    }
 
     public async IAsyncEnumerable<WordDefinition> FindClosestMatch(
         ReadOnlyMemory<float> vector,
