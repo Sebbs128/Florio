@@ -113,7 +113,7 @@ public sealed class QdrantMigrator(
         // current { collection: null, alias: null } => new alias(name: settings, collection: target)
         // current { collection: settings, alias: null } => delete(current.collection), new alias(name: settings, collection: target)
         // current { collection: not settings, alias: not null } => delete(current.alias), new alias(name: settings, collection: target), delete(current.collection)
-        if (!string.Equals(currentState.CollectionName, targetState.CollectionName) || currentState.AliasName is null)
+        if ((!string.Equals(currentState.CollectionName, targetState.CollectionName)) || currentState.AliasName is null)
         {
             if (currentState is { AliasName: not null })
             {
@@ -126,6 +126,11 @@ public sealed class QdrantMigrator(
             {
                 _logger.LogInformation("Deleting previous collection {collection}.", currentState.CollectionName);
                 await _qdrantClient.DeleteCollectionAsync(currentState.CollectionName, cancellationToken: cancellationToken);
+            }
+
+            if (currentState is { AliasName: null } && targetState is { CollectionName: null })
+            {
+                targetState.CollectionName = currentState.CollectionName;
             }
 
             _logger.LogInformation("Creating new alias {alias} for collection {collection}.",
