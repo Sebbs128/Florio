@@ -61,10 +61,10 @@ public sealed class QdrantMigrator(
 
         _logger.LogInformation("""
             Current state:
-              Collection {collection}
-              Alias {alias}
-              Vector Size {dimensions}
-              Vector Count {count}
+              Collection: {collection}
+              Alias: {alias}
+              Vector Size: {dimensions}
+              Vector Count: {count}
             """,
             currentState.CollectionName,
             currentState.AliasName,
@@ -75,28 +75,33 @@ public sealed class QdrantMigrator(
         var targetState = new CollectionState
         {
             AliasName = _settings.CollectionName,
-            VectorSize = model.CalculateVector("a").Length
+            CollectionSize = _settings.NumberOfVectors,
+            VectorSize = _settings.VectorSize,
         };
 
         _logger.LogInformation("""
             Target state:
-              Collection {collection}
-              Alias {alias}
-              Vector Size {dimensions}
+              Collection: {collection}
+              Alias: {alias}
+              Vector Size: {dimensions}
+              Vector Count: {count}
             """,
             targetState.CollectionName,
             targetState.AliasName,
-            targetState.VectorSize);
+            targetState.VectorSize,
+            targetState.CollectionSize);
 
         _logger.LogInformation("Running migration checks...");
 
         var requiresReseeding = false;
 
-        if (currentState.AliasName is null || currentState.VectorSize != targetState.VectorSize)
+        if (currentState.AliasName is null
+            || currentState.VectorSize != targetState.VectorSize
+            || currentState.CollectionSize != targetState.CollectionSize)
         {
             requiresReseeding = true;
             // TODO: collection name suffix needs to be something that can be calculated to indicate properties of the collection
-            targetState.CollectionName = $"{_settings.CollectionName}-{DateTime.UtcNow:yyyyMMdd_HHmm}";
+            targetState.CollectionName = $"{_settings.CollectionName}-{targetState.VectorSize}_{targetState.CollectionSize}";
 
             _logger.LogInformation("Creating new collection {collection}, with vector size {dimensions}.",
                 targetState.CollectionName,
@@ -128,7 +133,7 @@ public sealed class QdrantMigrator(
                 await _qdrantClient.DeleteCollectionAsync(currentState.CollectionName, cancellationToken: cancellationToken);
             }
 
-            if (currentState is { AliasName: null } && targetState is { CollectionName: null })
+            if (currentState is { AliasName: null, CollectionName: not null } && targetState is { CollectionName: null })
             {
                 targetState.CollectionName = currentState.CollectionName;
             }

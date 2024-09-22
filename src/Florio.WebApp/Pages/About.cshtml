@@ -66,18 +66,18 @@
     <p>
         Now that I have code that can parse the Italian words and English definitions, what next? The goal is to put it all in a vector database,
         so I need to generate vector embeddings for all of the Italian words. Each word is normalised (diacritics and transcription marks removed, and converted to lower-case)
-        and then split into tri-grams (each vector consisting of groups of three letters). For example, This keeps the vector space small, and tolerates misspellings or spelling variants.
+        and then split into unigrams and bigrams (each vector consisting of groups of one and two letters). This keeps the vector space small, and tolerates misspellings or spelling variants.
         Using this, ML.NET can train an ONNX model that can be exported to a file (so I don't have to retrain it every time the application starts),
         and can be used to generate the vectors required for populating the vector database.
         <br />
         For example, <em>Stellẻ[o]</em> (where <em>[o]</em> is a notation used by the transcribers to aid pronunciation) first becomes <pre>stelleo</pre> after being normalised.
-        This is then split into the tri-grams (with a "sliding window") <pre>[s, t, e], [t, e, l], [e, l, l], [l, l, e], [l, e, o], [e, o, ], [o, , ]</pre> 
+        This is then split into the unigrams and bigrams<pre>[s], [t], [e], [l], [l], [e], [o], [s, t], [t, e], [e, l], [l, l], [l, e], [e, o], [o, ]</pre>
         Searching the vector database easily locates this, even if it is slightly misspelled (e.g. <code class="text-dark">steleo</code>; missing an <code class="text-dark">l</code>).
     </p>
     <p>
-        With all this, I can finally populate a vector database. I went with <a href="https://qdrant.tech/">Qdrant</a> (pronounced "quadrant", I think?)
-        as I've used it before, it has a first-class .NET library, and I know it has a nice web UI I can use to manage and examine the data, and experiment with querying the database.
-        However a different vector database could easily be used instead (and I even use the <code>VolatileMemoryStore</code> from the Semantic Kernel library in one of the test apps).
+        With all this, I can finally populate a vector database. I started with <a href="https://qdrant.tech/">Qdrant</a> (pronounced "quadrant", I think?),
+        but have switched over to Azure CosmosDb with it's recently added vector support as it provides a (much cheaper) serverless option, and the ability to query using SQL.
+        However other vector databases could easily be used instead (and I even use the <code>VolatileMemoryStore</code> from the Semantic Kernel library in one of the test apps).
         <br/>
         As I'm sure you've seen by trying a search, this has worked a spectacular treat.<br/>
         <span data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-content="<em>finished, ended, accomplished</em>">

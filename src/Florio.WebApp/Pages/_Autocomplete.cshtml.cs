@@ -35,7 +35,7 @@ public class AutocompleteModel(
             Results = await _repository
                 .FindByWord(vector, cancellationToken: HttpContext.RequestAborted)
                 .Select(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
-                .ToListAsync();
+                .ToListAsync(cancellationToken: HttpContext.RequestAborted);
         }
         return Page();
     }

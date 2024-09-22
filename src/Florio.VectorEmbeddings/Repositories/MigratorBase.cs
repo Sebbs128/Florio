@@ -17,7 +17,7 @@ public abstract class MigratorBase(
     protected readonly ILogger _logger = logger;
 
     public abstract Task MigrateAsync(CancellationToken cancellationToken = default);
-    protected abstract Task CreateCollection(int vectorSeize, string collectionName, CancellationToken cancellationToken = default);
+    protected abstract Task CreateCollection(int vectorSize, string collectionName, CancellationToken cancellationToken = default);
 
     protected abstract Task InsertRecords(string collectionName, IReadOnlyList<WordDefinitionEmbedding> records, CancellationToken cancellationToken = default);
 

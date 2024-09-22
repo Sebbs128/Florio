@@ -3,7 +3,6 @@ using Florio.VectorEmbeddings.EmbeddingsModel;
 using Florio.VectorEmbeddings.EmbeddingsModel.ModelData;
 using Florio.VectorEmbeddings.Extensions;
 using Florio.VectorEmbeddings.Repositories;
-using Florio.VectorEmbeddings.Settings;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.ML;
@@ -54,10 +53,7 @@ public static class ServiceCollectionExtensions
         where TMigrator : class, IRepositoryMigrator
     {
         services
-            .AddSingleton<IRepositoryMigrator, TMigrator>()
-            .AddSingleton(sp => sp.GetRequiredService<IConfiguration>()
-                .GetSection(nameof(VectorDbInitializerSettings))
-                .Get<VectorDbInitializerSettings>() ?? new VectorDbInitializerSettings());
+            .AddSingleton<IRepositoryMigrator, TMigrator>();
         return services;
     }
 }

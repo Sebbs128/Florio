@@ -31,16 +31,6 @@ public sealed class CosmosDbRepository(
             MaxRetryAttempts = 10
         })
         .Build();
-    private static readonly ResiliencePipeline _upsertBatchPipeline = new ResiliencePipelineBuilder()
-        .AddRetry(new Polly.Retry.RetryStrategyOptions
-        {
-            Delay = TimeSpan.FromSeconds(1),
-            ShouldHandle = new PredicateBuilder().Handle<CosmosException>(ex => ex.StatusCode == HttpStatusCode.RequestTimeout),
-            MaxDelay = TimeSpan.FromSeconds(10),
-            MaxRetryAttempts = 10,
-            UseJitter = true
-        })
-        .Build();
 
     private const string PartitionKeyPath = "/partitionKey";
 
@@ -113,7 +103,7 @@ public sealed class CosmosDbRepository(
         const string queryText = """
             SELECT TOP 1 VectorDistance(v.vector, @targetVector) AS score, v.wordDefinitions
             FROM vectorGroupDocument v
-            WHERE score > @threshold
+            WHERE VectorDistance(v.vector, @targetVector) > @threshold
             ORDER BY VectorDistance(v.vector, @targetVector)
             """;
 
@@ -196,7 +186,6 @@ public sealed class CosmosDbRepository(
 
     public async IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
-        int limit = 10,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         const string queryText = """
@@ -234,78 +223,5 @@ public sealed class CosmosDbRepository(
                 yield return result.wordDefinitions.First();
             }
         }
-    }
-
-    public async Task InsertBatch(
-        IReadOnlyList<WordDefinitionEmbedding> values,
-        CancellationToken cancellationToken = default)
-    {
-        var groupedByVector = values
-            .GroupBy(v => v.Vector)
-            .Select(vg => new VectorGroupDocument(
-                id: Guid.NewGuid().ToString("N"),
-                vector: vg.Key.ToArray(),
-                partitionKey: vg.First().WordDefinition.Word[0].ToString(),
-                wordDefinitions: vg
-                    .Select(v => v.WordDefinition)
-                    .Select(wd => new WordDefinitionDocument(
-                        wd.Word,
-                        wd.Definition,
-                        wd.ReferencedWords))
-                    .ToArray()));
-
-        var container = GetContainer(_cosmosClient);
-        int itemsCount = 0;
-
-        var batchSize = 5;
-
-        foreach (var batch in groupedByVector.Chunk(batchSize))
-        {
-
-            await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
-            {
-                await Task.WhenAll(batch.Select(i =>
-                    container.UpsertItemAsync(i, new PartitionKey(i.partitionKey), cancellationToken: cancelToken)));
-            }, cancellationToken);
-
-            itemsCount += batch.Sum(i => i.wordDefinitions.Length);
-            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount, values.Count);
-        }
-
-        //for (int batch = 0; batch < values.Count; batch += batchSize)
-        //{
-        //    var toAdd = values
-        //        .Skip(batch)
-        //        .Take(batchSize)
-        //        .Select(v => new WordDefinitionEntity(
-        //            (++itemsCount).ToString(),
-        //            v.Vector.ToArray(),
-        //            v.WordDefinition.Word[0].ToString(),
-        //            v.WordDefinition.Word,
-        //            v.WordDefinition.Definition,
-        //            v.WordDefinition.ReferencedWords))
-        //        .ToArray();
-
-        //    await _upsertBatchPipeline.ExecuteAsync(async cancelToken =>
-        //    {
-        //        await Task.WhenAll(toAdd
-        //            .Select(entity => container.UpsertItemAsync(entity, cancellationToken: cancellationToken)));
-        //    }, cancellationToken);
-
-        //    _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount, values.Count);
-        //}
-
-        // update container to have index on Word column
-        //var indexingPolicy = new IndexingPolicy();
-        //indexingPolicy.IncludedPaths.Add(new IncludedPath { Path = $"/vectors/{nameof(WordDefinitionEntity.word)}/" });
-
-        //await container.ReplaceContainerAsync(
-        //    new ContainerProperties
-        //    {
-        //        Id = _settings.CollectionName,
-        //        PartitionKeyPath = PartitionKeyPath,
-        //        IndexingPolicy = indexingPolicy
-        //    },
-        //    cancellationToken: cancellationToken);
     }
 }

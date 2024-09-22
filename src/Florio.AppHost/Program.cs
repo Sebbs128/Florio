@@ -5,18 +5,16 @@ var cosmosdb = builder.AddAzureCosmosDB("cosmos")
     .RunAsEmulator(config =>
     {
         config.WithHttpsEndpoint(8081, 8081, "emulator-port");
+        config.WithEnvironment(ctx =>
+        {
+            ctx.EnvironmentVariables.Add("AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE", "true");
+        });
     });
 
-var qdrant = builder.AddQdrant("qdrant")
-    .WithImageTag("v1.10.0")
-    .WithDataVolume();
-
 builder.AddProject<Projects.Florio_VectorDbManager>("vectordbmanager")
-    //.WithReference(qdrant);
     .WithReference(cosmosdb);
 
 builder.AddProject<Projects.Florio_WebApp>("webapp")
-    //.WithReference(qdrant)
     .WithReference(cosmosdb)
     .WithExternalHttpEndpoints();
 

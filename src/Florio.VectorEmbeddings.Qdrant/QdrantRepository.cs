@@ -1,6 +1,4 @@
 ﻿using System.Buffers;
-using System.Diagnostics;
-using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 
 using Florio.Data;
@@ -12,7 +10,6 @@ using Google.Protobuf.Collections;
 using Grpc.Core;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.ML.OnnxRuntime.Tensors;
 
 using Polly;
 
@@ -137,7 +134,6 @@ public sealed class QdrantRepository(
 
     public async IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
-        int limit = 10,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var searchResults = await _qdrantClient.SearchGroupsAsync(_settings.CollectionName, vector,
