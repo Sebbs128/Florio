@@ -6,6 +6,11 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services
+    .AddGutenbergDownloaderAndParser()
+    .AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSettings:OnnxFilePath"]!)
+    .AddHostedService<VectorDbInitializerBackgroundService>();
+
 if (builder.Configuration.GetConnectionString("qdrant") is { Length: > 0 })
 {
     builder.AddQdrantClient("qdrant");
@@ -23,16 +28,8 @@ if (builder.Configuration.GetConnectionString("cosmos") is { Length: > 0 })
         options.MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(5);
     });
     builder.Services.AddVectorEmbeddingsRepository<CosmosDbRepository>()
-    .AddVectorEmbeddingsMigrations<CosmosDbMigrator>();
+        .AddVectorEmbeddingsMigrations<CosmosDbMigrator>();
 }
-
-builder.Services.AddGutenbergDownloaderAndParser();
-builder.Services.AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSettings:OnnxFilePath"]!)
-    //.AddVectorEmbeddingsRepository<QdrantRepository>()
-    //.AddVectorEmbeddingsMigrations<QdrantMigrator>()
-    //.AddVectorEmbeddingsRepository<CosmosDbRepository>()
-    //.AddVectorEmbeddingsMigrations<CosmosDbMigrator>()
-    .AddHostedService<VectorDbInitializerBackgroundService>();
 
 var app = builder.Build();
 
