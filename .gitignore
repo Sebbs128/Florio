@@ -489,3 +489,4 @@ $RECYCLE.BIN/
 /.localassets/
 /.notes/
 **/wwwroot/lib/*
+/src/Florio.Exporters.Onnx/Data

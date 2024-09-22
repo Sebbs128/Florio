@@ -10,7 +10,7 @@ public interface IWordDefinitionRepository
     /// <param name="cancellationToken"></param>
     /// <returns>true if the collection existed; otherwise false.</returns>
     Task<bool> CollectionExists(CancellationToken cancellationToken = default);
-    IAsyncEnumerable<WordDefinition> FindByWord(ReadOnlyMemory<float> vector, CancellationToken cancellationToken = default);
     IAsyncEnumerable<WordDefinition> FindClosestMatch(ReadOnlyMemory<float> vector, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<WordDefinition> FindByWord(ReadOnlyMemory<float> vector, CancellationToken cancellationToken = default);
     IAsyncEnumerable<WordDefinition> FindMatches(ReadOnlyMemory<float> vector, int limit = 10, CancellationToken cancellationToken = default);
 }

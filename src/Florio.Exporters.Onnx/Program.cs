@@ -26,7 +26,7 @@ var data = wordDefinitions
 
 var trainer = serviceProvider.GetRequiredService<VectorEmbeddingModelTrainer>();
 
-trainer.TrainAndSaveModel(data, onnxModelPath);
+await trainer.TrainAndSaveModel(data, onnxModelPath);
 
 static string GetAbsolutePath(string relativePath)
 {

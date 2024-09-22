@@ -8,20 +8,20 @@ namespace Florio.Utilities.VectorTesting;
 internal class TestEmbeddingsService(
     IRepositoryMigrator migrator,
     IWordDefinitionRepository repository,
-    IVectorEmbeddingModelFactory vectorEmbeddingModelFactory,
+    IVectorEmbeddingModelFactory embeddingsModelFactory,
     IStringFormatter stringFormatter,
     IHostApplicationLifetime hostLifetime)
     : BackgroundService
 {
     private readonly IRepositoryMigrator _migrator = migrator;
     private readonly IWordDefinitionRepository _repository = repository;
-    private readonly IVectorEmbeddingModelFactory _vectorEmbeddingModelFactory = vectorEmbeddingModelFactory;
+    private readonly IVectorEmbeddingModelFactory _embeddingsModelFactory = embeddingsModelFactory;
     private readonly IStringFormatter _stringFormatter = stringFormatter;
     private readonly IHostApplicationLifetime _hostLifetime = hostLifetime;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var model = _vectorEmbeddingModelFactory.GetModel();
+        var model = _embeddingsModelFactory.GetModel();
 
         await _migrator.MigrateAsync(cancellationToken);
 

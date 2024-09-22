@@ -1,6 +1,6 @@
 using System.Threading.RateLimiting;
 
-using Florio.VectorEmbeddings.Qdrant;
+using Florio.VectorEmbeddings.CosmosDb;
 using Florio.WebApp.HealthChecks;
 using Florio.WebApp.Settings;
 
@@ -10,12 +10,14 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 // Add services to the container.
 builder.AddServiceDefaults();
-builder.AddQdrantClient("qdrant");
+//builder.AddQdrantClient("qdrant");
+builder.AddAzureCosmosClient("cosmos");
 
 builder.Services
     .AddGutenbergDownloaderAndParser() // required for IStringFormatter
     .AddVectorEmbeddingsModel(builder.Configuration["EmbeddingsSettings:OnnxFilePath"]!)
-    .AddVectorEmbeddingsRepository<QdrantRepository>();
+    //.AddVectorEmbeddingsRepository<QdrantRepository>();
+    .AddVectorEmbeddingsRepository<CosmosDbRepository>();
 
 builder.Services.AddHealthChecks()
     .AddCheck<VectorDatabaseHealthCheck>("Vector Database", tags: ["ready"]);

@@ -57,13 +57,14 @@ public class SemanticKernelMemoryRepository(
         CancellationToken cancellationToken = default)
     {
         return _vectorStore.GetNearestMatchesAsync(_settings.CollectionName, vector, limit,
-            minRelevanceScore: _settings.ScoreThreshold,
+            //minRelevanceScore: _settings.ScoreThreshold,
             cancellationToken: cancellationToken)
             .Select((result) => CreateWordDefinition(result.Item1));
     }
 
     public IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
+        int limit = 10,
         CancellationToken cancellationToken = default)
     {
         return _vectorStore.GetNearestMatchesAsync(_settings.CollectionName, vector,
