@@ -31,10 +31,11 @@
         online translation tools often didn't quite do the job either.
     </p>
     <p>
-        I had been aware of progress on machine-learning translation models, in particular surprising work like <a href="https://www.microsoft.com/en-us/research/publication/zero-shot-cross-lingual-transfer-of-neural-machine-translation-with-multilingual-pretrained-encoders/">
-        Chen et al. Zero-shot Cross-lingual transfer</a>, where further training a translation model on one language yields improvements for other languages,
-        even those in unrelated language families. I had an idea to leverage this to more easily create a translation model that could understand Early Modern Italian,
-        however I would need text to feed it. I did in fact start the process of transcribing the scans hosted by Greg Lindahl, and transcribed about 2,400 words.
+        I had been aware of progress on machine-learning translation models, in particular surprising work like 
+        <a href="https://aclanthology.org/P19-1299/">Multi-Source Cross-Lingual Model Transfer: Learning What to Share (Chen et al., ACL 2019)</a>,
+        where further training a translation model on one language yields improvements for other languages without much training data, even those in unrelated language families. 
+        I had an idea to leverage this to more easily create a translation model that could understand Early Modern Italian, however I would need text to feed it. 
+        I did in fact start the process of transcribing the scans hosted by Greg Lindahl, and transcribed about 2,400 words.
     </p>
     <p>
         Transcribing is a long process, which wasn't at all helped by curiousity about old words or phrases that have long since fallen out of common use.
@@ -76,7 +77,7 @@
     </p>
     <p>
         With all this, I can finally populate a vector database. I started with <a href="https://qdrant.tech/">Qdrant</a> (pronounced "quadrant", I think?),
-        but have switched over to Azure CosmosDb with it's recently added vector support as it provides a (much cheaper) serverless option, and the ability to query using SQL.
+        but have switched over to Azure CosmosDb with its recently added vector support as it provides a (much cheaper) serverless option, and the ability to query using SQL.
         However other vector databases could easily be used instead (and I even use the <code>VolatileMemoryStore</code> from the Semantic Kernel library in one of the test apps).
         <br/>
         As I'm sure you've seen by trying a search, this has worked a spectacular treat.<br/>
