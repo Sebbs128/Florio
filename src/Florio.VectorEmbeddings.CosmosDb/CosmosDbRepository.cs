@@ -61,41 +61,6 @@ public sealed class CosmosDbRepository(
         }, cancellationToken);
     }
 
-    public async Task CreateCollection(int vectorSize, CancellationToken cancellationToken)
-    {
-        var dbResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(_settings.CollectionName, cancellationToken: cancellationToken);
-
-        var containerProperties = new ContainerProperties(_settings.CollectionName, PartitionKeyPath)
-        {
-            VectorEmbeddingPolicy = new(new(
-                [
-                    new()
-                    {
-                        Path = $"/{nameof(VectorGroupDocument.vector)}",
-                        DataType = VectorDataType.Float32,
-                        DistanceFunction = DistanceFunction.Cosine,
-                        Dimensions = (ulong)vectorSize
-                    }
-                ])),
-            IndexingPolicy = new()
-            {
-                VectorIndexes = new()
-                {
-                    new()
-                    {
-                        Path = $"/{nameof(VectorGroupDocument.vector)}",
-                        Type = VectorIndexType.QuantizedFlat,
-                    }
-                }
-            }
-        };
-        containerProperties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
-        containerProperties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = $"/{nameof(VectorGroupDocument.vector)}/*" });
-        containerProperties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/_etag/?" });
-
-        await dbResponse.Database.CreateContainerIfNotExistsAsync(containerProperties, cancellationToken: cancellationToken);
-    }
-
     public async IAsyncEnumerable<WordDefinition> FindClosestMatch(
         ReadOnlyMemory<float> vector,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -126,7 +91,10 @@ public sealed class CosmosDbRepository(
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug("Nearest result to {vector} has similarity {similarity}", vector.ToSparseRepresentation(), result.score);
+                    _logger.LogDebug("Nearest result(s) to {vector} is '{result}' with similarity {similarity}",
+                        vector.ToSparseRepresentation(),
+                        result.wordDefinitions.First().word,
+                        result.score);
                 }
 
                 foreach (var item in result.wordDefinitions)

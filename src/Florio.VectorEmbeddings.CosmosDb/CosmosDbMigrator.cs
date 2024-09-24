@@ -36,7 +36,9 @@ public sealed class CosmosDbMigrator(
         .AddRetry(new Polly.Retry.RetryStrategyOptions
         {
             Delay = TimeSpan.FromSeconds(1),
-            ShouldHandle = new PredicateBuilder().Handle<CosmosException>(ex => ex.StatusCode == HttpStatusCode.RequestTimeout),
+            ShouldHandle = new PredicateBuilder()
+                .Handle<CosmosException>(ex => ex.StatusCode == HttpStatusCode.RequestTimeout)
+                .Handle<CosmosOperationCanceledException>(), //
             MaxDelay = TimeSpan.FromSeconds(10),
             MaxRetryAttempts = 10,
             UseJitter = true
@@ -87,10 +89,10 @@ public sealed class CosmosDbMigrator(
               Vector Size {dimensions}
               Vector Count: {count}
             """,
-            currentState.DatabaseName,
-            currentState.ContainerName,
-            currentState.VectorSize,
-            currentState.CollectionSize);
+            targetState.DatabaseName,
+            targetState.ContainerName,
+            targetState.VectorSize,
+            targetState.CollectionSize);
 
         _logger.LogInformation("Running migration checks...");
 
@@ -191,7 +193,7 @@ public sealed class CosmosDbMigrator(
         var groupedByVector = records
             .GroupBy(v => v.Vector)
             .Select(vg => new VectorGroupDocument(
-                id: Guid.NewGuid().ToString("N"),
+                id: _stringFormatter.NormalizeForVector(vg.First().WordDefinition.Word),
                 vector: vg.Key.ToArray(),
                 partitionKey: vg.First().WordDefinition.Word[0].ToString(),
                 wordDefinitions: vg
@@ -205,9 +207,7 @@ public sealed class CosmosDbMigrator(
         var container = _cosmosClient.GetContainer(collectionName, collectionName);
         int itemsCount = 0;
 
-        var initialThroughput = await container.ReadThroughputAsync(cancellationToken);
-
-        var batchSize = 5;// Math.Max(initialThroughput ?? 400 / 40, 5);
+        var batchSize = 5;
 
         foreach (var item in groupedByVector.Chunk(batchSize))
         {

@@ -25,7 +25,6 @@ public class SemanticKernelMemoryRepository(
         return _vectorStore.DoesCollectionExistAsync(_settings.CollectionName, cancellationToken);
     }
 
-
     public async IAsyncEnumerable<WordDefinition> FindClosestMatch(
         ReadOnlyMemory<float> vector,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -64,7 +63,6 @@ public class SemanticKernelMemoryRepository(
 
     public IAsyncEnumerable<WordDefinition> FindByWord(
         ReadOnlyMemory<float> vector,
-        int limit = 10,
         CancellationToken cancellationToken = default)
     {
         return _vectorStore.GetNearestMatchesAsync(_settings.CollectionName, vector,
@@ -73,20 +71,6 @@ public class SemanticKernelMemoryRepository(
             .Select((result) => CreateWordDefinition(result.Item1))
             .GroupBy(wd => wd.Word)
             .SelectAwait(async g => await g.FirstAsync());
-    }
-
-    public async Task InsertBatch(
-        IReadOnlyList<WordDefinitionEmbedding> values,
-        CancellationToken cancellationToken = default)
-    {
-        var records = values
-            .Select(v => MemoryRecord.LocalRecord(
-                id: Guid.NewGuid().ToString(),
-                embedding: v.Vector,
-                text: v.WordDefinition.Word,
-                description: v.WordDefinition.Definition,
-                additionalMetadata: JsonSerializer.Serialize(v.WordDefinition.ReferencedWords ?? [])));
-        await _vectorStore.UpsertBatchAsync(_settings.CollectionName, records, cancellationToken).CountAsync(cancellationToken);
     }
 
     private static WordDefinition CreateWordDefinition(MemoryRecord memoryRecord)

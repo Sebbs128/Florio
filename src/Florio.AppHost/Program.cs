@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var cosmosdb = builder.AddAzureCosmosDB("cosmos")
-    .AddDatabase("cosmosdb")
+    .AddDatabase("florio")
     .RunAsEmulator(config =>
     {
         config.WithHttpsEndpoint(8081, 8081, "emulator-port");
