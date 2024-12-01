@@ -5,8 +5,6 @@ using Florio.VectorEmbeddings.Repositories;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using OpenTelemetry.Trace;
-
 namespace Florio.VectorEmbeddings;
 
 public class VectorDbInitializerBackgroundService(
@@ -32,7 +30,7 @@ public class VectorDbInitializerBackgroundService(
         }
         catch (Exception ex)
         {
-            activity?.RecordException(ex);
+            activity?.AddException(ex);
             throw;
         }
 

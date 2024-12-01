@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />
     <ProjectReference Include="..\Florio.ServiceDefaults\Florio.ServiceDefaults.csproj" />
@@ -13,17 +11,14 @@
     <ProjectReference Include="..\Florio.VectorEmbeddings.Qdrant\Florio.VectorEmbeddings.Qdrant.csproj" />
     <ProjectReference Include="..\Florio.VectorEmbeddings\Florio.VectorEmbeddings.csproj" />
   </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Aspire.Microsoft.Azure.Cosmos" Version="8.2.0" />
-        <PackageReference Include="Aspire.Qdrant.Client" Version="8.2.0" />
-        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\Florio.Exporters.Onnx\Data\word-embeddings.onnx" Link="Embeddings\ModelFiles\word-embeddings.onnx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Aspire.Microsoft.Azure.Cosmos" />
+    <PackageReference Include="Aspire.Qdrant.Client" />
+    <PackageReference Include="System.Linq.Async" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Florio.Exporters.Onnx\Data\word-embeddings.onnx" Link="Embeddings\ModelFiles\word-embeddings.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

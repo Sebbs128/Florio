@@ -32,8 +32,6 @@ public sealed class CosmosDbRepository(
         })
         .Build();
 
-    private const string PartitionKeyPath = "/partitionKey";
-
     private Container GetContainer(CosmosClient client) => client.GetContainer(_settings.CollectionName, _settings.CollectionName);
 
     public async Task<bool> CollectionExists(CancellationToken cancellationToken = default)
@@ -130,7 +128,7 @@ public sealed class CosmosDbRepository(
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count());
+                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count);
             }
             foreach (var result in response)
             {
@@ -174,7 +172,7 @@ public sealed class CosmosDbRepository(
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count());
+                _logger.LogDebug("Search for {vector} found {count} results", vector.ToSparseRepresentation(), response.Count);
             }
             foreach (var result in response)
             {
