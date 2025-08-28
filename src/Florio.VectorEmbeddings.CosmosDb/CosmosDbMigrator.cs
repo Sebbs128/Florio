@@ -207,7 +207,7 @@ public sealed class CosmosDbMigrator(
         var container = _cosmosClient.GetContainer(collectionName, collectionName);
         int itemsCount = 0;
 
-        var batchSize = 5;
+        var batchSize = 10;
 
         foreach (var item in groupedByVector.Chunk(batchSize))
         {

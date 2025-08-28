@@ -15,7 +15,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         var lineBuilder = new StringBuilder();
 
         var state = new ParserState();
-        var lineEnumerator = _downloader.ReadLines(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
         await foreach (var line in _downloader.ReadLines(cancellationToken))
         {
@@ -95,7 +94,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         public bool HaveReachedEntries { get; private set; } = false;
         public bool CurrentlyHandlingDefinition { get; private set; } = false;
 
-        public WordDefinition PreviousDefinition { get; private set; } = default;
+        public WordDefinition? PreviousDefinition { get; private set; } = default;
 
         public void ReachedEntries()
         {
@@ -114,12 +113,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
 
         public void UpdatePreviousDefinition(WordDefinition newPreviousDefinition)
         {
-            PreviousDefinition = new()
-            {
-                Word = newPreviousDefinition.Word,
-                Definition = newPreviousDefinition.Definition,
-                ReferencedWords = newPreviousDefinition.ReferencedWords,
-            };
+            PreviousDefinition = newPreviousDefinition;
         }
     }
 
@@ -153,7 +147,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             // hit a case where no word is identified
             // there are some expected instances of this
             //Debugger.Break();
-            return Enumerable.Empty<WordDefinition>();
+            return [];
         }
     }
 
@@ -208,7 +202,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
 
         return wordDefintion with
         {
-            ReferencedWords = GetReferencedWords(wordDefintion.Definition).Distinct().ToArray()
+            ReferencedWords = [.. GetReferencedWords(wordDefintion.Definition).Distinct()]
         };
 
         // some lines haven't had the HTML italics converted to the []
@@ -302,12 +296,14 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         line.StartsWith("Fáre a guísa délla", StringComparison.Ordinal) ||
         line.StartsWith("Vliuígn[o]", StringComparison.Ordinal); // this has been fixed in PG as of 2024-05-30
 
-
     // TODO: consider adding the word matching to the previous definition as a referenced word?
     //       - might be very difficult/impossible as WordDefinition is immutable, and
     //         ReferencedWords is an array
-    internal static WordDefinition CheckAndHandleIdem(WordDefinition definitionLine, WordDefinition previousDefinition)
+    internal static WordDefinition CheckAndHandleIdem(WordDefinition definitionLine, WordDefinition? previousDefinition)
     {
+        if (previousDefinition is null)
+            return definitionLine;
+
         // handle "idem.", meaning "as above"
         // - may be
         //   - capitalised ("Idem."),

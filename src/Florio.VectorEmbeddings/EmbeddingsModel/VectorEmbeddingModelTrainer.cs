@@ -41,7 +41,7 @@ public class VectorEmbeddingModelTrainer(MLContext mlContext, IOptions<Embedding
 
 #if DEBUG
         // test a sample selection. This also helps as a quick catch if entries might be empty or all 0s
-        var samples = Random.Shared.GetItems(new ReadOnlySpan<string>(data.ToArray()), 25);
+        var samples = Random.Shared.GetItems(new ReadOnlySpan<string>([.. data]), 25);
 
         foreach (var item in samples)
         {
@@ -60,7 +60,7 @@ public class VectorEmbeddingModelTrainer(MLContext mlContext, IOptions<Embedding
         await JsonSerializer.SerializeAsync(infoFileStream, new
         {
             NumberOfVectors = data.Count(),
-            VectorSize = (predictionEngine.OutputSchema.Last().Type as VectorDataViewType).Size
+            VectorSize = ((VectorDataViewType)predictionEngine.OutputSchema[^1].Type).Size
         });
     }
 }
