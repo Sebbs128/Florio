@@ -2,8 +2,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 //var cosmosdb = builder.AddConnectionString("cosmos");
 
-var cosmosdb = builder.AddAzureCosmosDB("cosmos")
-    .AddDatabase("cosmosdb");
+var cosmosdb = builder.AddAzureCosmosDB("cosmos");
+var database = cosmosdb.AddCosmosDatabase("cosmosdb");
+
 if (!builder.ExecutionContext.IsPublishMode)
 {
     cosmosdb.RunAsEmulator(config =>

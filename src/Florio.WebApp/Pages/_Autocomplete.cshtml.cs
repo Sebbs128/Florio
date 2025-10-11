@@ -32,10 +32,17 @@ public class AutocompleteModel(
         {
             var vector = _embeddingsModel.CalculateVector(_stringFormatter.NormalizeForVector(Search));
 
-            Results = await _repository
-                .FindByWord(vector, cancellationToken: HttpContext.RequestAborted)
-                .Select(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
-                .ToListAsync(cancellationToken: HttpContext.RequestAborted);
+            try
+            {
+                Results = await _repository
+            .FindByWord(vector, cancellationToken: HttpContext.RequestAborted)
+            .Select(wd => _stringFormatter.ToPrintableNormalizedString(wd.Word))
+            .ToListAsync(cancellationToken: HttpContext.RequestAborted);
+            }
+            catch (OperationCanceledException)
+            {
+                // search term updated, so request was aborted
+            }
         }
         return Page();
     }

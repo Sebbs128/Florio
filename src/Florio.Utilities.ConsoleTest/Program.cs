@@ -39,9 +39,9 @@ static void PrintMaxLengths(List<WordDefinition> wordDefinitions)
     var longestWord = wordDefinitions.MaxBy(wd => wd.Word.Length);
     var longestDefinition = wordDefinitions.MaxBy(wd => wd.Definition.Length);
 
-    Console.WriteLine($"Longest word ({longestWord.Word.Length} chars): {longestWord.Word}");
+    Console.WriteLine($"Longest word ({longestWord!.Word.Length} chars): {longestWord.Word}");
     Console.WriteLine();
-    Console.WriteLine($"Longest definition ({longestDefinition.Definition.Length} chars): {longestDefinition.Definition}");
+    Console.WriteLine($"Longest definition ({longestDefinition!.Definition.Length} chars): {longestDefinition.Definition}");
     Console.WriteLine();
 }
 

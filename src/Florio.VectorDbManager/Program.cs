@@ -21,7 +21,7 @@ if (builder.Configuration.GetConnectionString("cosmos") is { Length: > 0 })
 {
     builder.AddAzureCosmosClient("cosmos", configureClientOptions: options =>
     {
-        //options.AllowBulkExecution = true;
+        options.AllowBulkExecution = true;
         options.EnableContentResponseOnWrite = false;
         //options.RequestTimeout = TimeSpan.FromMinutes(5);
         options.MaxRetryAttemptsOnRateLimitedRequests = 5;

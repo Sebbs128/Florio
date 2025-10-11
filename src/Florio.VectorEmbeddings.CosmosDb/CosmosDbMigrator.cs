@@ -141,7 +141,7 @@ public sealed class CosmosDbMigrator(
             {
                 return new ContainerState();
             }
-        });
+        }, cancellationToken);
     }
 
     protected override async Task CreateCollection(int vectorSize, string collectionName, CancellationToken cancellationToken = default)
@@ -157,19 +157,19 @@ public sealed class CosmosDbMigrator(
                         Path = $"/{nameof(VectorGroupDocument.vector)}",
                         DataType = VectorDataType.Float32,
                         DistanceFunction = DistanceFunction.Cosine,
-                        Dimensions = (ulong)vectorSize
+                        Dimensions = vectorSize
                     }
                 ])),
             IndexingPolicy = new()
             {
-                VectorIndexes = new()
-                {
+                VectorIndexes =
+                [
                     new()
                     {
                         Path = $"/{nameof(VectorGroupDocument.vector)}",
                         Type = VectorIndexType.QuantizedFlat,
                     }
-                }
+                ]
             }
         };
         containerProperties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
@@ -205,9 +205,11 @@ public sealed class CosmosDbMigrator(
                     .ToArray()));
 
         var container = _cosmosClient.GetContainer(collectionName, collectionName);
-        int itemsCount = 0;
+        var itemsCount = 0;
 
-        var batchSize = 5;
+        // at least on the emulator, any larger than this
+        // starts to receive "response ended prematurely" exceptions or other timeouts
+        const int batchSize = 10;
 
         foreach (var item in groupedByVector.Chunk(batchSize))
         {
