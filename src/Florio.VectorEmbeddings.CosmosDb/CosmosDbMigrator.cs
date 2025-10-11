@@ -205,9 +205,11 @@ public sealed class CosmosDbMigrator(
                     .ToArray()));
 
         var container = _cosmosClient.GetContainer(collectionName, collectionName);
-        int itemsCount = 0;
+        var itemsCount = 0;
 
-        var batchSize = 10;
+        // at least on the emulator, any larger than this
+        // starts to receive "response ended prematurely" exceptions or other timeouts
+        const int batchSize = 10;
 
         foreach (var item in groupedByVector.Chunk(batchSize))
         {

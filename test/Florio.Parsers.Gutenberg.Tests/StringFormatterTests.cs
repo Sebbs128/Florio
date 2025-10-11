@@ -2,7 +2,7 @@
 
 namespace Florio.Parsers.Gutenberg.Tests;
 
-public class StringExtensionsTests
+public class StringFormatterTests
 {
     [Theory]
     [InlineData("Apẻndi[o]", "Apẻndio")]
