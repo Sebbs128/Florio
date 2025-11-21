@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace Florio.VectorEmbeddings.CosmosDb;
-public sealed class CosmosDbMigrator(
+public sealed partial class CosmosDbMigrator(
     CosmosClient cosmosClient,
     IWordDefinitionParser textParser,
     IVectorEmbeddingModelFactory embeddingsModelFactory,
@@ -57,17 +57,11 @@ public sealed class CosmosDbMigrator(
 
     public override async Task MigrateAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Fetching current CosmosDb state.");
+        Log.FetchingCurrentState(_logger);
 
         var currentState = await GetCurrentState(cancellationToken);
 
-        _logger.LogInformation("""
-            Current state:
-              Database: {database}
-              Container: {container}
-              Vector Size: {dimensions}
-              Vector Count: {count}
-            """,
+        Log.CurrentState(_logger,
             currentState.DatabaseName,
             currentState.ContainerName,
             currentState.VectorSize,
@@ -82,19 +76,13 @@ public sealed class CosmosDbMigrator(
             VectorSize = _settings.VectorSize,
         };
 
-        _logger.LogInformation("""
-            Target state:
-              Database {database}
-              Container {container}
-              Vector Size {dimensions}
-              Vector Count: {count}
-            """,
+        Log.TargetState(_logger,
             targetState.DatabaseName,
             targetState.ContainerName,
             targetState.VectorSize,
             targetState.CollectionSize);
 
-        _logger.LogInformation("Running migration checks...");
+        Log.RunningMigrationChecks(_logger);
 
         var requiresReseeding = currentState.CollectionSize != targetState.CollectionSize
             || currentState.VectorSize != targetState.VectorSize;
@@ -102,9 +90,7 @@ public sealed class CosmosDbMigrator(
         if (currentState is { DatabaseName: null } or { ContainerName: null } || currentState.VectorSize != targetState.VectorSize)
         {
             requiresReseeding = true;
-            _logger.LogInformation("Creating new CosmosDb database and container {name}, with vector size {dimensions}",
-                targetState.ContainerName,
-                targetState.VectorSize);
+            Log.CreatingNewCosmosDbContainer(_logger, targetState.ContainerName, targetState.VectorSize);
             await CreateCollection(targetState.VectorSize, targetState.ContainerName, cancellationToken);
         }
 
@@ -177,7 +163,6 @@ public sealed class CosmosDbMigrator(
         containerProperties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/_etag/?" });
 
         await dbResponse.Database.CreateContainerIfNotExistsAsync(containerProperties, cancellationToken: cancellationToken);
-
     }
 
     protected override async Task InsertRecords(string collectionName, IReadOnlyList<WordDefinitionEmbedding> records, CancellationToken cancellationToken = default)
@@ -218,7 +203,43 @@ public sealed class CosmosDbMigrator(
                 await Task.WhenAll(item.Select(i => container.UpsertItemAsync(i, cancellationToken: cancelToken)));
             }, cancellationToken);
             itemsCount += item.Sum(i => i.wordDefinitions.Length);
-            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount, records.Count);
+            Log.InsertProgress(_logger, itemsCount, records.Count);
         }
+    }
+
+    private static partial class Log
+    {
+        private const string CurrentStateMessage = """
+            Current state:
+              Database: {database}
+              Container: {container}
+              Vector Size: {dimensions}
+              Vector Count: {count}
+            """;
+        private const string TargetStateMessage = """
+            Target state:
+              Database {database}
+              Container {container}
+              Vector Size {dimensions}
+              Vector Count: {count}
+            """;
+
+        [LoggerMessage(LogLevel.Information, "Fetching current CosmosDb state.")]
+        public static partial void FetchingCurrentState(ILogger logger);
+
+        [LoggerMessage(LogLevel.Information, CurrentStateMessage)]
+        public static partial void CurrentState(ILogger logger, string? database, string? container, int dimensions, int count);
+
+        [LoggerMessage(LogLevel.Information, TargetStateMessage)]
+        public static partial void TargetState(ILogger logger, string? database, string? container, int dimensions, int count);
+
+        [LoggerMessage(LogLevel.Information, "Running migration checks...")]
+        public static partial void RunningMigrationChecks(ILogger logger);
+
+        [LoggerMessage(LogLevel.Information, "Creating new CosmosDb database and container {name}, with vector size {dimensions}")]
+        public static partial void CreatingNewCosmosDbContainer(ILogger logger, string? name, int dimensions);
+
+        [LoggerMessage(LogLevel.Information, "{RecordProgress} of {TotalRecords} added to collection.")]
+        public static partial void InsertProgress(ILogger logger, int recordProgress, int totalRecords);
     }
 }

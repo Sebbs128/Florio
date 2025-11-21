@@ -11,11 +11,10 @@ public class FakeDownloader(string input) : IGutenbergTextDownloader
     {
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(_input));
         var reader = new StreamReader(stream);
-        while (!reader.EndOfStream)
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken)) is not null && !cancellationToken.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(cancellationToken);
-            if (line is not null)
-                yield return line;
+            yield return line;
         }
     }
 }

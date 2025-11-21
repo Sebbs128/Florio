@@ -28,11 +28,10 @@ public class GutenbergLocalTextDownloader : IGutenbergTextDownloader
 
         using var stream = File.OpenRead(_filePath);
         using var reader = new StreamReader(stream);
-        while (!(reader.EndOfStream || cancellationToken.IsCancellationRequested))
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken)) is not null && !cancellationToken.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(cancellationToken);
-            if (line is not null)
-                yield return line;
+            yield return line;
         }
     }
 

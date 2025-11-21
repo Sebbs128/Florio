@@ -18,13 +18,12 @@ public class GutenbergTextDownloader : IGutenbergTextDownloader
             yield break;
         }
 
-        using var stream = await _httpClient.GetStreamAsync(Constants.Gutenberg_Text_Url);
+        using var stream = await _httpClient.GetStreamAsync(Constants.Gutenberg_Text_Url, cancellationToken);
         using var reader = new StreamReader(stream);
-        while (!(reader.EndOfStream || cancellationToken.IsCancellationRequested))
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken)) is not null && !cancellationToken.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(cancellationToken);
-            if (line is not null)
-                yield return line;
+            yield return line;
         }
     }
 }
