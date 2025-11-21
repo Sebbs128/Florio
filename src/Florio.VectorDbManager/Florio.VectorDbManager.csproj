@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
@@ -14,7 +14,6 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Microsoft.Azure.Cosmos" />
     <PackageReference Include="Aspire.Qdrant.Client" />
-    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Florio.Exporters.Onnx\Data\word-embeddings.onnx" Link="Embeddings\ModelFiles\word-embeddings.onnx">
