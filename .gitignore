@@ -491,5 +491,5 @@ $RECYCLE.BIN/
 !*/*.onnx/
 /.localassets/
 /.notes/
-**/wwwroot/lib/*
+**/wwwroot/lib/**
 /src/Florio.Exporters.Onnx/Data
