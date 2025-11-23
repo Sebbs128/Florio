@@ -1,9 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var description = ViewData["Description"]
+        ?? "A searchable adaptation of John Florio's Italian-English Dictionary from 1611.";
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A searchable adaptation of John Florio's Italian-English Dictionary from 1611." />
+    <meta name="description" content="@description" />
     <meta name="theme-color" content="only light" />
     <meta name="author" content="Wayne Sebbens" />
     <title>@ViewData["Title"] - Florio's Italian-English Dictionarie</title>
@@ -53,7 +58,6 @@
         </div>
     </footer>
 
-    <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 

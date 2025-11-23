@@ -25,19 +25,15 @@ public class SearchComparerBackgroundService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var model = _embeddingsModelFactory.GetModel();
-        if (model is null)
-        {
-            throw new FileNotFoundException("Unable to load ONNX model. Ensure the .onnx file exists and the setting points to the correct file.");
-        }
-
+        var model = _embeddingsModelFactory.GetModel()
+            ?? throw new FileNotFoundException("Unable to load ONNX model. Ensure the .onnx file exists and the setting points to the correct file.");
         _logger.LogInformation("Checking if vector database has been initialized.");
 
         var databasesReady = false;
 
         while (!databasesReady)
         {
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
 
             databasesReady = await _cosmosDbRepository.CollectionExists(cancellationToken)
                 && await _qdrantRepository.CollectionExists(cancellationToken);
@@ -75,10 +71,10 @@ public class SearchComparerBackgroundService(
 
             _logger.LogInformation("Search results for {word} (vector: {vector}):", word, vector.ToSparseRepresentation());
 
-            var cosmosResults = await _cosmosDbRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync();
+            var cosmosResults = await _cosmosDbRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
             _logger.LogInformation("CosmosDb:\n{results}", string.Join('\n', cosmosResults.Select(wd => wd.Word)));
 
-            var qdrantResults = await _qdrantRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync();
+            var qdrantResults = await _qdrantRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
             _logger.LogInformation("Qdrant:\n{results}", string.Join('\n', qdrantResults.Select(wd => wd.Word)));
         }
     }
@@ -103,11 +99,11 @@ public class SearchComparerBackgroundService(
 
             _logger.LogInformation("Search results for {word} (vector: {vector}):", word, vector.ToSparseRepresentation());
 
-            var cosmosResults = await _cosmosDbRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync();
+            var cosmosResults = await _cosmosDbRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
             _logger.LogInformation("CosmosDb:\n{results}", string.Join('\n', cosmosResults.Select(wd => wd.Word)));
 
 
-            var qdrantResults = await _qdrantRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync();
+            var qdrantResults = await _qdrantRepository.FindMatches(vector, cancellationToken: cancellationToken).ToListAsync(cancellationToken);
             _logger.LogInformation("Qdrant:\n{results}", string.Join('\n', qdrantResults.Select(wd => wd.Word)));
         }
     }

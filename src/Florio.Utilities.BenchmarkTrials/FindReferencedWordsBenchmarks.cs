@@ -9,7 +9,7 @@ namespace Florio.Utilities.BenchmarkTrials;
 [MemoryDiagnoser]
 public class FindReferencedWordsBenchmarks
 {
-    public string[] Definitions =>
+    public static string[] Definitions =>
     [
         "_as_ Abbacáre.",
         "_as_ A sácc[o].",

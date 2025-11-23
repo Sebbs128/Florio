@@ -27,7 +27,7 @@ public class RenderDefinitionAndReferencesTagHelper(
     private readonly IWordDefinitionRepository _repository = repository;
     private readonly IUrlHelperFactory _urlHelperFactory = urlHelperFactory;
 
-    public WordDefinition WordDefinition { get; set; }
+    public WordDefinition WordDefinition { get; set; } = default!;
 
     [HtmlAttributeNotBound]
     [ViewContext]

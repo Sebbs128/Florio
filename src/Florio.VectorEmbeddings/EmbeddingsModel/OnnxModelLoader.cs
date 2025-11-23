@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ML;
 using Microsoft.Extensions.Options;
@@ -10,7 +11,7 @@ internal class OnnxModelLoader<TInputModel> : ModelLoader, IDisposable where TIn
 {
     private readonly MLContext _context;
     private readonly ILogger<OnnxModelLoader<TInputModel>> _logger;
-    private readonly object _lock;
+    private readonly Lock _lock;
 
     private string? _filePath;
     private FileSystemWatcher? _watcher;
@@ -24,7 +25,7 @@ internal class OnnxModelLoader<TInputModel> : ModelLoader, IDisposable where TIn
 
         _context = contextOptions.Value!.MLContext;
         _logger = logger;
-        _lock = new object();
+        _lock = new Lock();
     }
 
     public void Start(string filePath, bool watchFile)

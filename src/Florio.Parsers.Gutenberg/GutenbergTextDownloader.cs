@@ -2,14 +2,9 @@
 
 namespace Florio.Parsers.Gutenberg;
 
-public class GutenbergTextDownloader : IGutenbergTextDownloader
+public class GutenbergTextDownloader(HttpClient httpClient) : IGutenbergTextDownloader
 {
-    private readonly HttpClient _httpClient;
-
-    public GutenbergTextDownloader(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
+    private readonly HttpClient _httpClient = httpClient;
 
     public async IAsyncEnumerable<string> ReadLines([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
