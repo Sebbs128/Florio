@@ -4,8 +4,16 @@
 @inject Florio.Data.IStringFormatter stringFormatter
 
 @{
-    var word = (await Model.WordDefinition.FirstAsync()).Word;
+    var first = await Model.WordDefinition.FirstAsync();
+    var count = await Model.WordDefinition.CountAsync();
+    var word = first.Word;
     ViewData["Title"] = stringFormatter.ToPrintableString(word);
+    ViewData["Description"] = count switch
+    {
+        2 => $"{first.Definition} & 1 other definition.",
+        > 2 => $"{first.Definition} & {count - 1} other definitions.",
+        _ => first.Definition
+    };
 }
 
 <h1 class="fs-1 fw-light">

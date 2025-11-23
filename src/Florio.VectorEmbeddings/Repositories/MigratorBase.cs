@@ -4,7 +4,7 @@ using Florio.VectorEmbeddings.EmbeddingsModel;
 using Microsoft.Extensions.Logging;
 
 namespace Florio.VectorEmbeddings.Repositories;
-public abstract class MigratorBase(
+public abstract partial class MigratorBase(
     IWordDefinitionParser textParser,
     IVectorEmbeddingModelFactory embeddingsModelFactory,
     IStringFormatter stringFormatter,
@@ -23,18 +23,18 @@ public abstract class MigratorBase(
 
     protected virtual async Task ReseedCollection(string collectionName, VectorEmbeddingModel model, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Populating vector database.");
+        Log.PopulatingVectorDatabase(_logger);
 
         var records = await RetrieveAndParsePayload(model, cancellationToken);
 
         try
         {
             await InsertRecords(collectionName, records, cancellationToken);
-            _logger.LogInformation("Vector database populated.");
+            Log.VectorDatabasePopulated(_logger);
         }
         catch (Exception ex)
         {
-            _logger.LogInformation(ex, "Failed to populate vector database.");
+            Log.FailedToPopulateVectorDatabase(_logger, ex);
         }
     }
 
@@ -50,5 +50,18 @@ public abstract class MigratorBase(
                 return wg.Select(wd => new WordDefinitionEmbedding(key, wd));
             })
             .ToListAsync(cancellationToken);
+    }
+
+    private static partial class Log
+    {
+        [LoggerMessage(LogLevel.Information, "Populating vector database.")]
+        public static partial void PopulatingVectorDatabase(ILogger logger);
+
+        [LoggerMessage(LogLevel.Information, "Vector database populated.")]
+        public static partial void VectorDatabasePopulated(ILogger logger);
+
+        [LoggerMessage(LogLevel.Error, "Failed to populate vector database.")]
+        public static partial void FailedToPopulateVectorDatabase(ILogger logger, Exception exception);
+
     }
 }

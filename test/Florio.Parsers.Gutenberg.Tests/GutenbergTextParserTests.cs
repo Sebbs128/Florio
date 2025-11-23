@@ -41,7 +41,7 @@ public class GutenbergTextParserTests
         var downloader = new FakeDownloader(input);
         var parser = new GutenbergTextParser(downloader);
 
-        var actual = await parser.ParseLines().ToListAsync();
+        var actual = await parser.ParseLines(TestContext.Current.CancellationToken).ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
     }
 

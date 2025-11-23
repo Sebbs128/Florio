@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Florio.TestApps.VectorSearchComparer-003a85d2-522c-4291-8e51-cff9a8f0ab40</UserSecretsId>
@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Microsoft.Azure.Cosmos" />
     <PackageReference Include="Aspire.Qdrant.Client" />
-    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" VersionOverride="3.54.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Florio.Parsers.Gutenberg\Florio.Parsers.Gutenberg.csproj" />

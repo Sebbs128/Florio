@@ -37,13 +37,13 @@ public class SemanticKernelMemoryRepository(
             .GroupBy(r => r.Item1.Metadata.Text)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (searchResult is null || !await searchResult.AnyAsync(cancellationToken))
+        if (searchResult is null || !searchResult.Any())
         {
             _logger.LogDebug("No result for {vector} found within {threshold} distance", vector.ToSparseRepresentation(), _settings.ScoreThreshold);
             yield break;
         }
 
-        await foreach (var result in searchResult)
+        foreach (var result in searchResult)
         {
             _logger.LogDebug("Nearest result to {vector} has similarity {similarity}", vector.ToSparseRepresentation(), result.Item2);
             yield return CreateWordDefinition(result.Item1);
@@ -65,12 +65,13 @@ public class SemanticKernelMemoryRepository(
         ReadOnlyMemory<float> vector,
         CancellationToken cancellationToken = default)
     {
-        return _vectorStore.GetNearestMatchesAsync(_settings.CollectionName, vector,
-            limit: 20,
-            cancellationToken: cancellationToken)
+        return _vectorStore
+            .GetNearestMatchesAsync(_settings.CollectionName, vector,
+                limit: 20,
+                cancellationToken: cancellationToken)
             .Select((result) => CreateWordDefinition(result.Item1))
             .GroupBy(wd => wd.Word)
-            .SelectAwait(async g => await g.FirstAsync());
+            .Select(g => g.First());
     }
 
     private static WordDefinition CreateWordDefinition(MemoryRecord memoryRecord)

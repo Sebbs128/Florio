@@ -15,7 +15,7 @@ using Qdrant.Client.Grpc;
 
 namespace Florio.VectorEmbeddings.Qdrant;
 
-public sealed class QdrantMigrator(
+public sealed partial class QdrantMigrator(
     QdrantClient qdrantClient,
     IWordDefinitionParser textParser,
     IVectorEmbeddingModelFactory embeddingsModelFactory,
@@ -55,17 +55,11 @@ public sealed class QdrantMigrator(
 
     public override async Task MigrateAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Fetching current Qdrant collection state.");
+        Log.FetchingCurrentState(_logger);
 
         var currentState = await GetCurrentState(cancellationToken);
 
-        _logger.LogInformation("""
-            Current state:
-              Collection: {collection}
-              Alias: {alias}
-              Vector Size: {dimensions}
-              Vector Count: {count}
-            """,
+        Log.CurrentState(_logger,
             currentState.CollectionName,
             currentState.AliasName,
             currentState.VectorSize,
@@ -79,19 +73,13 @@ public sealed class QdrantMigrator(
             VectorSize = _settings.VectorSize,
         };
 
-        _logger.LogInformation("""
-            Target state:
-              Collection: {collection}
-              Alias: {alias}
-              Vector Size: {dimensions}
-              Vector Count: {count}
-            """,
+        Log.TargetState(_logger,
             targetState.CollectionName,
             targetState.AliasName,
             targetState.VectorSize,
             targetState.CollectionSize);
 
-        _logger.LogInformation("Running migration checks...");
+        Log.RunningMigrationChecks(_logger);
 
         var requiresReseeding = false;
 
@@ -103,9 +91,7 @@ public sealed class QdrantMigrator(
             // TODO: collection name suffix needs to be something that can be calculated to indicate properties of the collection
             targetState.CollectionName = $"{_settings.CollectionName}-{targetState.VectorSize}_{targetState.CollectionSize}";
 
-            _logger.LogInformation("Creating new collection {collection}, with vector size {dimensions}.",
-                targetState.CollectionName,
-                targetState.VectorSize);
+            Log.CreatingNewCollection(_logger, targetState.CollectionName, targetState.VectorSize);
             await CreateCollection(targetState.VectorSize, targetState.CollectionName, cancellationToken);
         }
 
@@ -122,14 +108,14 @@ public sealed class QdrantMigrator(
         {
             if (currentState is { AliasName: not null })
             {
-                _logger.LogInformation("Deleting existing alias {alias}.", currentState.AliasName);
+                Log.DeletingAlias(_logger, currentState.AliasName);
                 await _qdrantClient.DeleteAliasAsync(currentState.AliasName, cancellationToken: cancellationToken);
             }
             // if there currently isn't an alias, and the current collection name is what we want to name the alias
             // we need to drop the current collection before we can add an alias with that name
             else if (string.Equals(currentState.CollectionName, targetState.AliasName))
             {
-                _logger.LogInformation("Deleting previous collection {collection}.", currentState.CollectionName);
+                Log.DeletingPreviousCollection(_logger, currentState.CollectionName);
                 await _qdrantClient.DeleteCollectionAsync(currentState.CollectionName, cancellationToken: cancellationToken);
             }
 
@@ -138,14 +124,12 @@ public sealed class QdrantMigrator(
                 targetState.CollectionName = currentState.CollectionName;
             }
 
-            _logger.LogInformation("Creating new alias {alias} for collection {collection}.",
-                targetState.AliasName,
-                targetState.CollectionName);
+            Log.CreatingNewAlias(_logger, targetState.AliasName, targetState.CollectionName);
             await _qdrantClient.CreateAliasAsync(targetState.AliasName!, targetState.CollectionName!, cancellationToken: cancellationToken);
 
             if (currentState is { CollectionName: not null, AliasName: not null })
             {
-                _logger.LogInformation("Deleting previous collection {collection}.", currentState.CollectionName);
+                Log.DeletingPreviousCollection(_logger, currentState.CollectionName);
                 await _qdrantClient.DeleteCollectionAsync(currentState.CollectionName, cancellationToken: cancellationToken);
             }
         }
@@ -221,7 +205,7 @@ public sealed class QdrantMigrator(
                 Debug.Assert(updateResult.Status == UpdateStatus.Completed);
             }, cancellationToken);
 
-            _logger.LogInformation("{RecordProgress} of {TotalRecords} added to collection.", itemsCount - 1, records.Count);
+            Log.InsertProgress(_logger, itemsCount - 1, records.Count);
 
             await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
 
@@ -230,5 +214,50 @@ public sealed class QdrantMigrator(
 
         await _qdrantClient.CreatePayloadIndexAsync(collectionName, nameof(WordDefinition.Word),
             cancellationToken: cancellationToken);
+    }
+
+    private static partial class Log
+    {
+        private const string CurrentStateMessage = """
+            Current state:
+              Collection: {collection}
+              Alias: {alias}
+              Vector Size: {dimensions}
+              Vector Count: {count}
+            """;
+        private const string TargetStateMessage = """
+            Target state:
+              Collection: {collection}
+              Alias: {alias}
+              Vector Size: {dimensions}
+              Vector Count: {count}
+            """;
+
+        [LoggerMessage(LogLevel.Information, "Fetching current Qdrant collection state.")]
+        public static partial void FetchingCurrentState(ILogger logger);
+
+        [LoggerMessage(LogLevel.Information, CurrentStateMessage)]
+        public static partial void CurrentState(ILogger logger, string? collection, string? alias, int dimensions, int count);
+
+        [LoggerMessage(LogLevel.Information, TargetStateMessage)]
+        public static partial void TargetState(ILogger logger, string? collection, string? alias, int dimensions, int count);
+
+        [LoggerMessage(LogLevel.Information, "Running migration checks...")]
+        public static partial void RunningMigrationChecks(ILogger logger);
+
+        [LoggerMessage(LogLevel.Information, "Creating new collection {collection}, with vector size {dimensions}.")]
+        public static partial void CreatingNewCollection(ILogger logger, string collection, int dimensions);
+
+        [LoggerMessage(LogLevel.Information, "Deleting existing alias {alias}.")]
+        public static partial void DeletingAlias(ILogger logger, string alias);
+
+        [LoggerMessage(LogLevel.Information, "Creating new alias {alias} for collection {collection}.")]
+        public static partial void CreatingNewAlias(ILogger logger, string alias, string? collection);
+
+        [LoggerMessage(LogLevel.Information, "Deleting previous collection {collection}.")]
+        public static partial void DeletingPreviousCollection(ILogger logger, string? collection);
+
+        [LoggerMessage(LogLevel.Information, "{RecordProgress} of {TotalRecords} added to collection.")]
+        public static partial void InsertProgress(ILogger logger, int recordProgress, int totalRecords);
     }
 }

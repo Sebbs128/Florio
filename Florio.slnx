@@ -1,0 +1,34 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Florio.AppHost/Florio.AppHost.csproj" />
+    <Project Path="src/Florio.Data/Florio.Data.csproj" />
+    <Project Path="src/Florio.Parsers.Gutenberg/Florio.Parsers.Gutenberg.csproj" />
+    <Project Path="src/Florio.ServiceDefaults/Florio.ServiceDefaults.csproj" />
+    <Project Path="src/Florio.VectorDbManager/Florio.VectorDbManager.csproj" />
+    <Project Path="src/Florio.VectorEmbeddings.CosmosDb/Florio.VectorEmbeddings.CosmosDb.csproj" />
+    <Project Path="src/Florio.VectorEmbeddings.Qdrant/Florio.VectorEmbeddings.Qdrant.csproj" />
+    <Project Path="src/Florio.VectorEmbeddings.SKInMemory/Florio.VectorEmbeddings.SKInMemory.csproj" />
+    <Project Path="src/Florio.VectorEmbeddings/Florio.VectorEmbeddings.csproj" />
+    <Project Path="src/Florio.WebApp/Florio.WebApp.csproj" />
+  </Folder>
+  <Folder Name="/src/exporters/">
+    <Project Path="src/Florio.Exporters.Excel/Florio.Exporters.Excel.csproj" />
+    <Project Path="src/Florio.Exporters.Onnx/Florio.Exporters.Onnx.csproj" />
+  </Folder>
+  <Folder Name="/src/test apps/">
+    <Project Path="src/Florio.TestApps.AppHost/Florio.TestApps.AppHost.csproj" />
+    <Project Path="src/Florio.TestApps.VectorSearchComparer/Florio.TestApps.VectorSearchComparer.csproj" />
+  </Folder>
+  <Folder Name="/src/utility apps/">
+    <Project Path="src/Florio.Utilities.BenchmarkTrials/Florio.Utilities.BenchmarkTrials.csproj" />
+    <Project Path="src/Florio.Utilities.ConsoleTest/Florio.Utilities.ConsoleTest.csproj" />
+    <Project Path="src/Florio.Utilities.VectorTesting/Florio.Utilities.VectorTesting.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Florio.Parsers.Gutenberg.Tests/Florio.Parsers.Gutenberg.Tests.csproj" />
+  </Folder>
+</Solution>
