@@ -24,10 +24,24 @@ public class StringFormatterTests
     [InlineData("[O]bbróbri[o]", "obbrobrio")]
     [InlineData("Óbit[o]", "obito")]
     [InlineData("[Ó]ber[o]", "obero")]
-    public void NormalizeString_ReturnsExpected(string input, string expected)
+    public void PrintableNormalizeString_ReturnsExpected(string input, string expected)
     {
         IStringFormatter stringFormatter = new StringFormatter();
         string actual = stringFormatter.ToPrintableNormalizedString(input);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Apẻndi[o]", "apendio")]
+    [InlineData("Sẻttezz[ó]ni", "settezzoni")]
+    [InlineData("[O]bbróbri[o]", "obbrobrio")]
+    [InlineData("Óbit[o]", "obito")]
+    [InlineData("[Ó]ber[o]", "obero")]
+    public void NormalizeStringForVector_ReturnsExpected(string input, string expected)
+    {
+        IStringFormatter stringFormatter = new StringFormatter();
+        string actual = stringFormatter.NormalizeForVector(input);
 
         Assert.Equal(expected, actual);
     }

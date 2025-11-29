@@ -20,6 +20,14 @@ public class GutenbergTextParserTests
     }
 
     [Theory]
+    [MemberData(nameof(GroupedDefinitionLines))]
+    public void CanParseGroupedLinesIntoDefinitions(string line, IEnumerable<WordDefinition> definitions)
+    {
+        Assert.True(GutenbergTextParser.ContainsDefinition(line));
+        Assert.Equal(definitions, GutenbergTextParser.ParseGroupedWordDefinition(line));
+    }
+
+    [Theory]
     [MemberData(nameof(WordVariations))]
     public void CanExtractWordVariations(string wordWithVariations, IEnumerable<string> variations)
     {
@@ -60,6 +68,54 @@ public class GutenbergTextParserTests
         {
             "Pr<i>ò</i> Pr<i>ò</i>, _much much good may it doe you, well may you fare._",
             new WordDefinition("Pr[ò] Pr[ò]", "_much much good may it doe you, well may you fare._")
+        },
+        {
+            "Pr[ò] Pr[ò], _much much good may it doe you, well may you fare._",
+            new WordDefinition("Pr[ò] Pr[ò]", "_much much good may it doe you, well may you fare._")
+        }
+    };
+
+    public static TheoryData<string, IEnumerable<WordDefinition>> GroupedDefinitionLines => new()
+    {
+        {
+            """
+              Máglia lárga.    }
+                               }
+              Máglia l[ó]nga.  }
+                               } Certain net-worke
+              Máglia quádra.   } so called of Semsters.
+                               }
+              Máglia strétta.  }
+                               }
+              Máglia t[ó]nda.  }
+            """,
+            [
+                new("Máglia lárga", "_Certain net-worke so called of Semsters._"),
+                new("Máglia l[ó]nga", "_Certain net-worke so called of Semsters._"),
+                new("Máglia quádra", "_Certain net-worke so called of Semsters._"),
+                new("Máglia strétta", "_Certain net-worke so called of Semsters._"),
+                new("Máglia t[ó]nda", "_Certain net-worke so called of Semsters._")
+            ]
+        },
+        {
+            """
+              [Ó]rl[o] álla spagnuóla.  }
+                                        }
+              [Ó]rl[o] crésp[o].        }
+                                        }  _Certaine hemes
+              [Ó]rl[o] pertugiát[o].    }   so called of
+                                        }   Seamsters._
+              [Ó]rl[o] pián[o].         }
+                                        }
+              [Ó]rl[o] retín[o].        }
+            """,
+            [
+                new("[Ó]rl[o] álla spagnuóla", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] crésp[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] pertugiát[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] pián[o]", "_Certaine hemes so called of Seamsters._"),
+                new("[Ó]rl[o] retín[o]", "_Certaine hemes so called of Seamsters._")
+            ]
         }
     };
 
