@@ -2,7 +2,7 @@
 
 A .NET project to read, parse, and export John Florio's 1611 Italian-English Dictionary.
 
-My goal with this project is to provide a translation tool for early modern Italian to early modern English.
+My goal with this project is to provide a translation tool for Renaissance Italian to Early Modern English.
 Within this repo you will find the code for a website backed by a vector database containing the dictionary, and the tooling to allow anyone to clone the repo and run the site.
 
 Notable executables within the repo:
