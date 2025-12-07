@@ -9,6 +9,17 @@ public class StringFormatter : IStringFormatter
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public string ToPrintableString(string input) =>
-        input.Replace("[", "").Replace("]", "");
+    public string ToPrintableString(ReadOnlySpan<char> input)
+    {
+        Span<char> buffer = stackalloc char[input.Length];
+        var pos = 0;
+
+        foreach (var c in input.SplitAny('[', ']'))
+        {
+            input[c].CopyTo(buffer[pos..]);
+            pos += c.End.Value - c.Start.Value;
+        }
+
+        return new string(buffer[..pos]);
+    }
 }

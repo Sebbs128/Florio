@@ -5,6 +5,7 @@ namespace Florio.Parsers.Gutenberg.Tests;
 public class StringFormatterTests
 {
     [Theory]
+    [InlineData("Abachísta", "Abachísta")]
     [InlineData("Apẻndi[o]", "Apẻndio")]
     [InlineData("Sẻttezz[ó]ni", "Sẻttezzóni")]
     [InlineData("[O]bbróbri[o]", "Obbróbrio")]
@@ -19,6 +20,7 @@ public class StringFormatterTests
     }
 
     [Theory]
+    [InlineData("Abachísta", "abachista")]
     [InlineData("Apẻndi[o]", "apendio")]
     [InlineData("Sẻttezz[ó]ni", "settezzoni")]
     [InlineData("[O]bbróbri[o]", "obbrobrio")]
@@ -33,6 +35,7 @@ public class StringFormatterTests
     }
 
     [Theory]
+    [InlineData("Abachísta", "abachista")]
     [InlineData("Apẻndi[o]", "apendio")]
     [InlineData("Sẻttezz[ó]ni", "settezzoni")]
     [InlineData("[O]bbróbri[o]", "obbrobrio")]
