@@ -1,13 +1,41 @@
 ﻿namespace Florio.Parsers.Gutenberg.Extensions;
+
 internal static class StringExtensions
 {
-    public static string CapitaliseFirstLetter(this string str) =>
-        $"{ToUpper(str[0])}{str[1..]}";
+    extension(ReadOnlySpan<char> value)
+    {
+        public string CapitaliseFirstLetter()
+        {
+            int length = value.Length;
+            if (char.ToLowerInvariant(value[0]) is 'ù' or 'ú')
+            {
+                length++;
+            }
+            return string.Create(length, value, (span, chars) =>
+            {
+                int i = 0;
+                // if starts with "u", change to "V"
+                if (chars[0] is 'u')
+                {
+                    span[0] = 'V';
+                    i++;
+                }
+                // cases with diacritics should be rare,
+                // but if they're ever found they should be printed as "V`"
+                else if (char.ToLowerInvariant(chars[0]) is 'ù' or 'ú')
+                {
+                    "V`".CopyTo(span[0..1]);
+                    i += 2;
+                }
+                // anything else we just convert to uppercase
+                else
+                {
+                    span[0] = char.ToUpperInvariant(chars[0]);
+                    i += 1;
+                }
 
-    // if starts with "u", change to "V"
-    // cases with diacritics (eg. 'Ú') should be rare
-    private static string ToUpper(char c) =>
-        c is 'u' ? "V"
-            : char.ToLowerInvariant(c) is 'u' ? "V`"
-            : char.ToUpperInvariant(c).ToString();
+                chars[1..].CopyTo(span[i..]);
+            });
+        }
+    }
 }
