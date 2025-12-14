@@ -41,12 +41,12 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             {
                 if (ContainsDefinition(line))
                 {
-                state.HandlingDefinition();
-            }
+                    state.HandlingDefinition();
+                }
                 else
-            {
-                continue;
-            }
+                {
+                    continue;
+                }
             }
 
             // blank line is an indication the definition has concluded
@@ -194,9 +194,9 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             else
             {
                 var startIndex = line.LastIndexOf("_or_", StringComparison.Ordinal);
-            // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
+                // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
                 index = startIndex + line[startIndex..].IndexOf(", _", StringComparison.OrdinalIgnoreCase);
-        }
+            }
         }
         else
         {
@@ -225,16 +225,16 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             var destPos = 0;
 
             while (pos < word.Length)
-        {
+            {
                 // Find the next '<' or '['
                 var copyUpTo = word[pos..].IndexOfAny('<', '[');
                 if (copyUpTo < 0)
-            {
+                {
                     // no other occurrences. copy what's remaining
                     word[pos..].CopyTo(buffer[destPos..]);
                     destPos += word.Length - pos;
                     break;
-            }
+                }
 
                 word.Slice(pos, copyUpTo).CopyTo(buffer[destPos..]);
                 destPos += copyUpTo;
@@ -296,17 +296,17 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                 if (definitionBuilder.Length > 0)
                 {
                     definitionBuilder.Append(' ');
-            }
+                }
 
                 definitionBuilder.Append(right);
-        }
+            }
         }
 
         if (definitionBuilder[0] != '_')
-            {
+        {
             definitionBuilder.Insert(0, '_');
             definitionBuilder.Append('_');
-    }
+        }
 
         var definition = definitionBuilder.ToString();
         return words.Select(w => new WordDefinition(w, definition));
@@ -372,59 +372,42 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     // eg.
     // - "Abacáre, _as_ Abbacáre."
     // - "Abbẻlláre, _as_ Abbẻllíre, _also to sooth vp, or please ones mind._"
-    internal static IEnumerable<string> GetReferencedWords(string definition)
+    internal static IEnumerable<string> GetReferencedWords(ReadOnlySpan<char> definition)
     {
-        // for loop variant is slightly better performing (both time and memory) than LINQ version
-        // consider revisiting if a variant of this that better leverages SIMD is identified
+        var results = new List<string>();
 
-        //return definition
-        //    .Split('_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        //    .Where((_, idx) => idx % 2 == 1)
-        //    .Select(s => s.Replace("&c", "").Trim([' ', ',', ':', '.']));
-
-        var parts = definition.Split('_',
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        for (var i = 1; i < parts.Length; i += 2)
+        Span<Range> partsRanges = stackalloc Range[definition.Count('_')];
+        var partsLength = definition.Split(partsRanges, '_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        for (var i = 1; i < partsLength; i += 2)
         {
-            if (parts[i].StartsWith("a, b, c", StringComparison.InvariantCultureIgnoreCase))
+            var range = partsRanges[i];
+            if (definition[range].StartsWith("a, b, c", StringComparison.InvariantCultureIgnoreCase))
             {
                 continue;
             }
 
-            var part = parts[i].Trim([',', '.']);
-
-            if (part.Contains('}'))
-            {
-                foreach (var example in part.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    var endIndex = example.IndexOf('}');
-                    if (endIndex > 0)
-                    {
-                        yield return example[..endIndex].Trim([' ', '.']);
-                    }
-                }
-                continue;
-            }
+            var part = definition[range].Trim([',', '.']);
 
             if (part.IndexOf(',') > 0 &&
-                (part.Count(c => c == ' ') == part.Count(c => c == ',') ||
+                (part.Count(' ') == part.Count(',') ||
                  part.StartsWith("Picchi[ó]ne", StringComparison.Ordinal)))
             {
                 // these should all be cases where multiple examples are given.
                 // we can split by ',' and return them
                 // also split by '.' to split sentence examples
 
-                var examples = parts[i].Split([',', '.'],
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-                foreach (var example in examples)
+                foreach (var exampleRange in part.SplitAny(",."))
                 {
+                    var example = part[exampleRange].Trim();
+                    if (example.IsEmpty)
+                    {
+                        continue;
+                    }
                     if (example.StartsWith("&c"))
                     {
                         continue;
                     }
-                    yield return example.Trim([' ', ',', ':', ';', '.']).CapitaliseFirstLetter();
+                    results.Add(new(example.Trim([' ', ',', ':', ';', '.']).CapitaliseFirstLetter()));
                 }
 
                 continue;
@@ -433,17 +416,25 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
             if (part.Contains('.') && part is not [.., '.'] &&
                 part.IndexOf(' ') > part.IndexOf('.'))
             {
-                foreach (var example in part.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                foreach (var exampleRange in part.Split('.'))
                 {
-                    yield return example.Trim([' ', ',']);
+                    var example = part[exampleRange].Trim();
+                    if (example.IsEmpty)
+                    {
+                        continue;
+                    }
+                    results.Add(new(part[exampleRange].Trim([' ', ','])));
                 }
+
                 continue;
             }
 
-            yield return part
+            results.Add(new string(part)
                 .Replace("&c", "", StringComparison.OrdinalIgnoreCase)
-                .Trim([' ', ',', ':', ';', '.']);
+                .Trim([' ', ',', ':', ';', '.']));
         }
+
+        return results;
     }
 
     // handle entries that list multiple suffixes or variations of a word
