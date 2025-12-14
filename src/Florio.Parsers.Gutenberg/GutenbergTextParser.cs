@@ -273,41 +273,45 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         }
     }
 
-    internal static IEnumerable<WordDefinition> ParseGroupedWordDefinition(string lines)
+    internal static IEnumerable<WordDefinition> ParseGroupedWordDefinition(ReadOnlySpan<char> lines)
     {
-        var definition = string.Empty;
-        var wordDefinitions = new List<WordDefinition>();
-        foreach (var line in lines.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        var definitionBuilder = new StringBuilder();
+        var words = new List<string>();
+        foreach (var r in lines.SplitAny(['\n', '\r']))
         {
-            if (line.Equals("}", StringComparison.Ordinal))
+            var line = lines[r].Trim();
+            if (line.IsEmpty || line.Equals("}", StringComparison.Ordinal))
             {
                 continue;
             }
 
             if (line[0] != '}')
             {
-                wordDefinitions.Add(new WordDefinition(line[..line.IndexOf('.')], string.Empty));
+                words.Add(new(line[..line.IndexOf('.')]));
             }
 
-            var right = line[(line.IndexOf('}') + 1)..];
-            if (!string.IsNullOrEmpty(right))
+            var right = line[(line.IndexOf('}') + 1)..].Trim();
+            if (!right.IsEmpty)
             {
-                definition += $"{right.Trim()} ";
+                if (definitionBuilder.Length > 0)
+                {
+                    definitionBuilder.Append(' ');
             }
+
+                definitionBuilder.Append(right);
         }
-        definition = definition.Trim();
-        if (definition[0] != '_')
-        {
-            definition = $"_{definition}_";
         }
-        return wordDefinitions
-            .Select(wd => wd with
+
+        if (definitionBuilder[0] != '_')
             {
-                Definition = definition
-            });
+            definitionBuilder.Insert(0, '_');
+            definitionBuilder.Append('_');
     }
 
-    internal static bool IsEndOfDefinitions(string line) =>
+        var definition = definitionBuilder.ToString();
+        return words.Select(w => new WordDefinition(w, definition));
+    }
+
     internal static bool IsEndOfDefinitions(ReadOnlySpan<char> line) =>
         line.Trim().Equals("FINIS.", StringComparison.Ordinal);
 
