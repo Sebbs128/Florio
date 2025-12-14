@@ -20,7 +20,7 @@ public interface IStringFormatter
         for (var sourcePos = 0; sourcePos < normalizedInputSpan.Length; sourcePos++)
         {
             var c = normalizedInputSpan[sourcePos];
-            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark || c == '`')
+            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark || c == '´')
             {
                 destPos += Copy(normalizedInputSpan[fromSourcePos..sourcePos], buffer[destPos..]);
                 fromSourcePos = sourcePos + 1;

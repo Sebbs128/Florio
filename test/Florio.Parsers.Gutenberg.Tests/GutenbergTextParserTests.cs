@@ -408,6 +408,10 @@ public class GutenbergTextParserTests
 
             Distrigáre, &c. _as_ Districáre.
 
+            Ẻ´ccene? _is there any, some or of it._
+
+            Ẻ´ccene, _there is some, there is of it._
+
             Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o], _to be._
 
             Fáre a guísa délla c[ó]da del pórc[o] che tútt[o] il gi[ó]rn[o] se la
@@ -510,6 +514,8 @@ public class GutenbergTextParserTests
                 {
                     ReferencedWords = ["Districáre"]
                 },
+                new("Ẻ´ccene?", "_is there any, some or of it._"),
+                new("Ẻ´ccene", "_there is some, there is of it._"),
                 new("Ẻssere", "_to be._"),
                 new("S[o]n[o]", "_to be._"),
                 new("Fui", "_to be._"),
