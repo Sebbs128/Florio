@@ -23,7 +23,7 @@ public class CapitaliseFirstLetterBenchmarks
         "variábile"
     ];
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public string[] StringExtension()
     {
         var result = new string[_testWords.Length];
