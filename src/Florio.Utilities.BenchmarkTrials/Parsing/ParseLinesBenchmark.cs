@@ -10,7 +10,7 @@ using BenchmarkDotNet.Attributes;
 
 using Florio.Parsers.Gutenberg;
 
-namespace Florio.Utilities.BenchmarkTrials;
+namespace Florio.Utilities.BenchmarkTrials.Parsing;
 
 // for comparing between changes to GutenbergTextParser
 [MemoryDiagnoser]

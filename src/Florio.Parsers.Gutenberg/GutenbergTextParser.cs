@@ -35,16 +35,18 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                 continue;
             }
 
-            //  ignore page headers ("A", "ABB" etc. anything not containing ", _")
+            // ignore page headers ("A", "ABB" etc. anything not containing ", _")
             // they indicate that we've reach the section containing definitions though
-            if (!state.CurrentlyHandlingDefinition && ContainsDefinition(line))
-            {
-                state.HandlingDefinition();
-            }
-
             if (!state.CurrentlyHandlingDefinition)
             {
+                if (ContainsDefinition(line))
+                {
+                state.HandlingDefinition();
+            }
+                else
+            {
                 continue;
+            }
             }
 
             // blank line is an indication the definition has concluded
@@ -64,8 +66,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
                     continue;
                 }
             }
-
-            if (!string.IsNullOrEmpty(line))
+            else
             {
                 if (line.Contains('}', StringComparison.OrdinalIgnoreCase))
                 {
@@ -158,17 +159,17 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     //   Auual[o] ráre, Auuampáre, Auueníre, Auu[o]l[o] ntáre, Auuinacciáre, &c.
     // - _As for the words that are ioyned vnto_ Chè, _which are very many I
     //   refer the reader to my rules at the word_ Chè.
-    internal static WordDefinition ParseWordDefinition(string line)
+    internal static WordDefinition ParseWordDefinition(ReadOnlySpan<char> line)
     {
         // special casing the definition of Vliuígn[o] that contains a transcription error. This returns false when the error is fixed.
-        static bool IsSpecialCaseTranscriptionError(string line) =>
-            line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_', StringComparison.OrdinalIgnoreCase);
+        static bool IsSpecialCaseTranscriptionError(ReadOnlySpan<char> line) =>
+            line.StartsWith("Vliuígn[o]", StringComparison.Ordinal) && !line.Contains('_');
 
-        static bool IsSpecialCaseWordVariationsWhere_or_PrecedesCommaSpaceUnderscore(string line) =>
-            (uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.OrdinalIgnoreCase);
+        static bool IsSpecialCaseWordVariationsWhere_or_PrecedesCommaSpaceUnderscore(ReadOnlySpan<char> line) =>
+            (uint)line.IndexOf(" _or_ ", StringComparison.Ordinal) < line.IndexOf(", _", StringComparison.Ordinal);
 
         // there are two definitions for V[o]lére, so we need to ensure we're just special casing the one containing variations
-        static bool IsSpecialCaseVariationsWithMultiple_or_(string line) =>
+        static bool IsSpecialCaseVariationsWithMultiple_or_(ReadOnlySpan<char> line) =>
             line.StartsWith("Deuére", StringComparison.Ordinal) ||
             line.StartsWith("Precédere", StringComparison.Ordinal) ||
             (line.StartsWith("V[o]lére", StringComparison.Ordinal) && line.Contains(", _or_ ", StringComparison.Ordinal));
@@ -178,7 +179,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         // fixed in PG as of 2024-05-30
         if (IsSpecialCaseTranscriptionError(line))
         {
-            index = line.IndexOf(',', StringComparison.OrdinalIgnoreCase);
+            index = line.IndexOf(',');
         }
         // special-case edge cases like
         // "Ẻssere, s[o]n[o], fui, f[ó]ra, stát[o] _or_ sút[o]"
@@ -186,10 +187,16 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         // "V[o]lére, vógli[o], _or_ vò, vólli _or_ vólsi, v[o]lút[o]"
         else if (IsSpecialCaseWordVariationsWhere_or_PrecedesCommaSpaceUnderscore(line) || IsSpecialCaseVariationsWithMultiple_or_(line))
         {
+            if (line.StartsWith("Fátt[o]", StringComparison.Ordinal))
+            {
+                index = line.IndexOf(", _", StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                var startIndex = line.LastIndexOf("_or_", StringComparison.Ordinal);
             // special case "Fátt[o] _or_ fátta, _following_ Sì, _or_ C[o]sì, _serueth for such, so made, or of such quality._"
-            index = line.StartsWith("Fátt[o]", StringComparison.Ordinal)
-                ? line.IndexOf(", _", StringComparison.OrdinalIgnoreCase)
-                : line.IndexOf(", _", line.LastIndexOf("_or_", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
+                index = startIndex + line[startIndex..].IndexOf(", _", StringComparison.OrdinalIgnoreCase);
+        }
         }
         else
         {
@@ -197,8 +204,8 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         }
 
         var wordDefintion = new WordDefinition(
-            Word: CleanInconsistencies(line[..index].Trim(',', ' ', ';')),
-            Definition: ParseDefinition(line[index..].Trim(',', ' ')));
+            Word: CleanInconsistencies(line[..index].Trim([',', ' ', ';'])),
+            Definition: new(line[index..].Trim([',', ' '])));
 
         return wordDefintion with
         {
@@ -211,28 +218,58 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
         //   in scans of Florio it looks the same as is used for Rintẻrzáre, ie. Rintẻrzáta cárta
         //   - Rint[er]rzáta cárta, _a bun-carde. Also a carde prickt or packt for aduantage._
         // these have been fixed in PG as of 2024-05-30
-        static string CleanInconsistencies(string word) => word
-            .Replace("<i>", "[", StringComparison.Ordinal).Replace("</i>", "]", StringComparison.Ordinal)
-            .Replace("[er]", "er", StringComparison.Ordinal);
-
-        static string ParseDefinition(string definitionLine)
+        static string CleanInconsistencies(ReadOnlySpan<char> word)
         {
-            if (!definitionLine.Contains('}'))
+            Span<char> buffer = stackalloc char[word.Length];
+            var pos = 0;
+            var destPos = 0;
+
+            while (pos < word.Length)
+        {
+                // Find the next '<' or '['
+                var copyUpTo = word[pos..].IndexOfAny('<', '[');
+                if (copyUpTo < 0)
             {
-                return definitionLine;
+                    // no other occurrences. copy what's remaining
+                    word[pos..].CopyTo(buffer[destPos..]);
+                    destPos += word.Length - pos;
+                    break;
             }
 
-            var lines = definitionLine.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+                word.Slice(pos, copyUpTo).CopyTo(buffer[destPos..]);
+                destPos += copyUpTo;
 
-            var examples = lines[1..]
-                .Select(l => l[..(l.IndexOf('}') + 1)])
-                .ToArray();
+                pos += copyUpTo;
+                var slice = word[pos..];
 
-            var examplesLabel = string.Join(" ", lines[1..]
-                .Select(l => l[(l.IndexOf('}') + 1)..].Trim())
-                .Where(l => !string.IsNullOrEmpty(l)));
+                if (slice.StartsWith("<i>", StringComparison.Ordinal))
+                {
+                    // Replace("<i>", "[", StringComparison.Ordinal)
+                    buffer[destPos++] = '[';
+                    pos += 3;
+                }
+                else if (slice.StartsWith("</i>", StringComparison.Ordinal))
+                {
+                    // Replace("</i>", "]", StringComparison.Ordinal)
+                    buffer[destPos++] = ']';
+                    pos += 4;
+                }
+                else if (slice.StartsWith("[er]", StringComparison.Ordinal))
+                {
+                    // Replace("[er]", "er", StringComparison.Ordinal)
+                    buffer[destPos++] = 'e';
+                    buffer[destPos++] = 'r';
+                    pos += 4;
+                }
+                else
+                {
+                    // wasn't one of the errata. copy this character, then continue
+                    buffer[destPos++] = word[pos];
+                    pos += 1;
+                }
+            }
 
-            return $"{lines[0]}\r\n\r\n{string.Join("\r\n", examples)} {examplesLabel}";
+            return new(buffer[..destPos]);
         }
     }
 
@@ -271,10 +308,11 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     }
 
     internal static bool IsEndOfDefinitions(string line) =>
+    internal static bool IsEndOfDefinitions(ReadOnlySpan<char> line) =>
         line.Trim().Equals("FINIS.", StringComparison.Ordinal);
 
-    internal static bool IsPageHeading(string line) =>
-        !string.IsNullOrWhiteSpace(line) && line.All(char.IsAsciiLetterUpper);
+    internal static bool IsPageHeading(ReadOnlySpan<char> line) =>
+        !line.IsWhiteSpace() && !line.ContainsAnyExceptInRange('A', 'Z');
 
     // while most definitions have ", _" immediately following the word, there are several exceptions, eg.
     // - "Anphiscij _as_ Amphiscij."
@@ -289,9 +327,9 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     //   that all day wags his taile and at night hath done nothing, much adoe
     //   and neuer the neerer, doe and vndoe the day is long enough._
     // Vliuígn[o] has been fixed in PG as of 2024-05-30
-    internal static bool ContainsDefinition(string line) =>
+    internal static bool ContainsDefinition(ReadOnlySpan<char> line) =>
         line.Contains(" _", StringComparison.Ordinal) || line.Contains(",_", StringComparison.Ordinal) ||
-        line.Contains('}', StringComparison.Ordinal) ||
+        line.Contains('}') ||
         // special edge cases
         line.StartsWith("Fáre a guísa délla", StringComparison.Ordinal) ||
         line.StartsWith("Vliuígn[o]", StringComparison.Ordinal); // this has been fixed in PG as of 2024-05-30
@@ -417,7 +455,7 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
     // - Torpẻnte, quási pígro, & oti[ó]s[o]
     internal static IEnumerable<string> GetVariations(string wordWithVariations)
     {
-        static bool IsSpecialEdgeCase(string word) =>
+        static bool IsSpecialEdgeCase(ReadOnlySpan<char> word) =>
             word.Equals("Fattaménte, si", StringComparison.InvariantCulture) || // this is a phrase
                                                                                 // these have been fixed in PG as of 2024-06-06
             word.Equals("Marẻa, the", StringComparison.InvariantCulture) || // this is a transcription error
@@ -516,8 +554,6 @@ public class GutenbergTextParser(IGutenbergTextDownloader downloader) : IWordDef
 
             // if the range is shorter than the variant length, we can immediately cut down our search
             var searchLength = Math.Min(variant.Length, endOfRange - startOfRange);
-
-            var searchSpan = originalLowered.Substring(startOfRange, searchLength);
 
             for (var z = searchLength; z > 0; z--)
             {

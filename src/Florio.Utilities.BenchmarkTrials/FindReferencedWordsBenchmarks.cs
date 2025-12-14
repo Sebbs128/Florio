@@ -27,9 +27,9 @@ public class FindReferencedWordsBenchmarks
     public string Data;
 
     [Benchmark]
-    public List<string> ForLoop()
+    public int ForLoop()
     {
-        return MethodToTest(Data).ToList();
+        return MethodToTest(Data).Count();
 
         static IEnumerable<string> MethodToTest(string definition)
         {
@@ -47,9 +47,9 @@ public class FindReferencedWordsBenchmarks
     }
 
     [Benchmark]
-    public List<string> Linq()
+    public int Linq()
     {
-        return MethodToTest(Data).ToList();
+        return MethodToTest(Data).Count();
 
         static IEnumerable<string> MethodToTest(string definition)
         {
